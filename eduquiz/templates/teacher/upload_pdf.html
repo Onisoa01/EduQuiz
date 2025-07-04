@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+
+{% block title %}Téléverser un PDF - EduQuiz{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Téléverser un cours PDF</h1>
+        <p class="text-gray-600 mt-2">L'IA analysera automatiquement votre document pour générer des quiz adaptés</p>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+            
+            <!-- Zone de téléversement -->
+            <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-primary transition-colors" 
+                 x-data="{ dragOver: false }" 
+                 @dragover.prevent="dragOver = true" 
+                 @dragleave.prevent="dragOver = false" 
+                 @drop.prevent="dragOver = false"
+                 :class="{ 'border-primary bg-primary/5': dragOver }">
+                <div class="space-y-4">
+                    <div class="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+                        <i class="fas fa-file-pdf text-primary text-2xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">Glissez-déposez votre fichier PDF ici</h3>
+                        <p class="text-gray-600">ou cliquez pour sélectionner un fichier</p>
+                    </div>
+                    <input type="file" name="pdf_file" accept=".pdf" required 
+                           class="hidden" id="pdf-upload">
+                    <label for="pdf-upload" 
+                           class="inline-flex items-center px-6 py-3 border border-primary text-primary bg-white hover:bg-primary hover:text-white rounded-lg font-medium cursor-pointer transition-colors">
+                        <i class="fas fa-upload mr-2"></i>
+                        Choisir un fichier
+                    </label>
+                    <p class="text-sm text-gray-500">Taille maximale: 10 MB • Formats acceptés: PDF</p>
+                </div>
+            </div>
+
+            <!-- Informations du cours -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="subject" class="block text-sm font-medium text-gray-700 mb-2">Matière</label>
+                    <select name="subject" id="subject" required 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
+                        <option value="">Sélectionner une matière</option>
+                        <option value="mathematics">Mathématiques</option>
+                        <option value="french">Français</option>
+                        <option value="science">Sciences (SVT)</option>
+                        <option value="physics">Physique-Chimie</option>
+                        <option value="history">Histoire-Géographie</option>
+                        <option value="english">Anglais</option>
+                        <option value="other">Autre</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="level" class="block text-sm font-medium text-gray-700 mb-2">Niveau</label>
+                    <select name="level" id="level" required 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
+                        <option value="">Sélectionner un niveau</option>
+                        <option value="6eme">6ème</option>
+                        <option value="5eme">5ème</option>
+                        <option value="4eme">4ème</option>
+                        <option value="3eme">3ème</option>
+                        <option value="seconde">Seconde</option>
+                        <option value="premiere">Première</option>
+                        <option value="terminale">Terminale</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label for="title" class="block text-sm font-medium text-gray-700 mb-2">Titre du cours</label>
+                <input type="text" name="title" id="title" required 
+                       placeholder="Ex: Les triangles et leurs propriétés"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
+            </div>
+
+            <div>
+                <label for="description" class="block text-sm font-medium text-gray-700 mb-2">Description (optionnel)</label>
+                <textarea name="description" id="description" rows="3" 
+                          placeholder="Décrivez brièvement le contenu de ce cours..."
+                          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary"></textarea>
+            </div>
+
+            <!-- Options de génération -->
+            <div class="bg-gray-50 rounded-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Options de génération des quiz</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="num_questions" class="block text-sm font-medium text-gray-700 mb-2">Nombre de questions</label>
+                        <select name="num_questions" id="num_questions" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
+                            <option value="10">10 questions</option>
+                            <option value="15" selected>15 questions</option>
+                            <option value="20">20 questions</option>
+                            <option value="25">25 questions</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="difficulty" class="block text-sm font-medium text-gray-700 mb-2">Niveau de difficulté</label>
+                        <select name="difficulty" id="difficulty" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
+                            <option value="easy">Facile</option>
+                            <option value="medium" selected>Moyen</option>
+                            <option value="hard">Difficile</option>
+                            <option value="mixed">Mixte</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <label class="flex items-center">
+                        <input type="checkbox" name="include_open_questions" 
+                               class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded">
+                        <span class="ml-2 text-sm text-gray-700">Inclure des questions ouvertes (réponses libres)</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center justify-between pt-6 border-t border-gray-200">
+                <a href="{% url 'teacher_dashboard' %}" 
+                   class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                    Annuler
+                </a>
+                <button type="submit" 
+                        class="px-8 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium">
+                    <i class="fas fa-magic mr-2"></i>
+                    Analyser et générer les quiz
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Informations sur le processus -->
+    <div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <div class="flex items-start">
+            <div class="flex-shrink-0">
+                <i class="fas fa-info-circle text-blue-600 text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <h3 class="text-lg font-semibold text-blue-900">Comment ça marche ?</h3>
+                <div class="mt-2 text-blue-800 space-y-2">
+                    <p>1. <strong>Analyse automatique</strong> : Notre IA analyse le contenu de votre PDF</p>
+                    <p>2. <strong>Génération intelligente</strong> : Des questions sont créées automatiquement</p>
+                    <p>3. <strong>Validation</strong> : Vous pouvez modifier et valider les questions avant publication</p>
+                    <p>4. <strong>Publication</strong> : Les quiz deviennent disponibles pour vos élèves</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
