@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="bg-gradient-to-br from-primary to-purple-700 text-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div class="text-center">
+            <h1 class="text-5xl font-bold mb-6">
+                Révise en t'amusant !
+            </h1>
+            <p class="text-xl mb-8 max-w-3xl mx-auto">
+                Transforme tes révisions en aventure avec des quiz interactifs, des défis chronométrés et un système de récompenses motivant.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="{% url 'register' %}" class="bg-white text-primary px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+                    Commencer maintenant
+                </a>
+                <a href="#features" class="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-primary transition-colors">
+                    Découvrir les fonctionnalités
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div id="features" class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold text-gray-900 mb-4">Pourquoi choisir EduQuiz ?</h2>
+            <p class="text-xl text-gray-600">Une approche révolutionnaire de l'apprentissage</p>
+        </div>
+        
+        <div class="grid md:grid-cols-3 gap-8">
+            <div class="text-center p-6 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100">
+                <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-robot text-white text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-3">IA Adaptative</h3>
+                <p class="text-gray-600">Quiz générés automatiquement à partir de vos cours PDF avec une intelligence artificielle avancée.</p>
+            </div>
+            
+            <div class="text-center p-6 rounded-xl bg-gradient-to-br from-green-50 to-emerald-50 border border-green-100">
+                <div class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-gamepad text-white text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-3">Gamification</h3>
+                <p class="text-gray-600">Badges, niveaux, classements et défis pour rendre l'apprentissage addictif et motivant.</p>
+            </div>
+            
+            <div class="text-center p-6 rounded-xl bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-100">
+                <div class="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-chart-line text-white text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-3">Suivi Personnalisé</h3>
+                <p class="text-gray-600">Tableaux de bord détaillés pour suivre vos progrès et identifier vos points d'amélioration.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Section -->
+<div class="py-16 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid md:grid-cols-4 gap-8 text-center">
+            <div>
+                <div class="text-4xl font-bold text-primary mb-2">10K+</div>
+                <div class="text-gray-600">Élèves actifs</div>
+            </div>
+            <div>
+                <div class="text-4xl font-bold text-primary mb-2">500+</div>
+                <div class="text-gray-600">Enseignants</div>
+            </div>
+            <div>
+                <div class="text-4xl font-bold text-primary mb-2">50K+</div>
+                <div class="text-gray-600">Quiz créés</div>
+            </div>
+            <div>
+                <div class="text-4xl font-bold text-primary mb-2">95%</div>
+                <div class="text-gray-600">Taux de satisfaction</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CTA Section -->
+<div class="bg-primary text-white py-16">
+    <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+        <h2 class="text-3xl font-bold mb-4">Prêt à révolutionner tes révisions ?</h2>
+        <p class="text-xl mb-8">Rejoins des milliers d'élèves qui ont déjà transformé leur façon d'apprendre.</p>
+        <a href="{% url 'register' %}" class="bg-white text-primary px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+            Créer mon compte gratuitement
+        </a>
+    </div>
+</div>
+{% endblock %}

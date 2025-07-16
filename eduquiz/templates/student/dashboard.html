@@ -1,0 +1,230 @@
+{% extends 'base.html' %}
+
+{% block title %}Tableau de bord - EduQuiz{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header avec salutation -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Salut {{ user.first_name }} ! 👋</h1>
+                <p class="text-gray-600 mt-1">Prêt pour une nouvelle session de révision ?</p>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-4 py-2 rounded-full">
+                    <i class="fas fa-fire mr-2"></i>
+                    <span class="font-semibold">Série: 7 jours</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats rapides -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center">
+                <div class="p-2 bg-blue-100 rounded-lg">
+                    <i class="fas fa-trophy text-blue-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Points totaux</p>
+                    <p class="text-2xl font-bold text-gray-900">1,250</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center">
+                <div class="p-2 bg-green-100 rounded-lg">
+                    <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Quiz réussis</p>
+                    <p class="text-2xl font-bold text-gray-900">23</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center">
+                <div class="p-2 bg-purple-100 rounded-lg">
+                    <i class="fas fa-medal text-purple-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Badges</p>
+                    <p class="text-2xl font-bold text-gray-900">8</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center">
+                <div class="p-2 bg-orange-100 rounded-lg">
+                    <i class="fas fa-chart-line text-orange-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Niveau</p>
+                    <p class="text-2xl font-bold text-gray-900">12</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Colonne principale -->
+        <div class="lg:col-span-2 space-y-8">
+            <!-- Quiz du jour -->
+            <div class="bg-gradient-to-r from-primary to-purple-600 rounded-xl text-white p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-bold">Quiz du jour</h2>
+                    <i class="fas fa-calendar-day text-2xl opacity-80"></i>
+                </div>
+                <h3 class="text-lg font-semibold mb-2">Mathématiques - Géométrie</h3>
+                <p class="opacity-90 mb-4">Teste tes connaissances sur les triangles et les cercles</p>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4 text-sm">
+                        <span><i class="fas fa-clock mr-1"></i>15 min</span>
+                        <span><i class="fas fa-question-circle mr-1"></i>20 questions</span>
+                        <span><i class="fas fa-star mr-1"></i>+50 pts</span>
+                    </div>
+                    <button class="bg-white text-primary px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+                        Commencer
+                    </button>
+                </div>
+            </div>
+
+            <!-- Activité récente -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-6">Activité récente</h2>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-check text-white"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="font-semibold text-gray-900">Quiz Français réussi</p>
+                                <p class="text-sm text-gray-600">Il y a 2 heures • +75 points</p>
+                            </div>
+                        </div>
+                        <div class="text-green-600 font-bold">18/20</div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-medal text-white"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="font-semibold text-gray-900">Nouveau badge obtenu</p>
+                                <p class="text-sm text-gray-600">Hier • "Maître des fractions"</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between p-4 bg-orange-50 rounded-lg border border-orange-200">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-clock text-white"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="font-semibold text-gray-900">Défi chronométré</p>
+                                <p class="text-sm text-gray-600">Il y a 1 jour • SVT - Biologie</p>
+                            </div>
+                        </div>
+                        <div class="text-orange-600 font-bold">2:34</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- Progression -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Progression du niveau</h3>
+                <div class="mb-4">
+                    <div class="flex justify-between text-sm text-gray-600 mb-2">
+                        <span>Niveau 12</span>
+                        <span>1250/1500 XP</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div class="bg-gradient-to-r from-primary to-purple-600 h-3 rounded-full" style="width: 83%"></div>
+                    </div>
+                </div>
+                <p class="text-sm text-gray-600">Plus que 250 XP pour le niveau 13 !</p>
+            </div>
+
+            <!-- Matières favorites -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Tes matières</h3>
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-calculator text-blue-600 text-sm"></i>
+                            </div>
+                            <span class="ml-3 text-sm font-medium">Mathématiques</span>
+                        </div>
+                        <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">85%</span>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-book text-green-600 text-sm"></i>
+                            </div>
+                            <span class="ml-3 text-sm font-medium">Français</span>
+                        </div>
+                        <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">78%</span>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-microscope text-purple-600 text-sm"></i>
+                            </div>
+                            <span class="ml-3 text-sm font-medium">SVT</span>
+                        </div>
+                        <span class="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">65%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Classement -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Classement de la classe</h3>
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <span class="w-6 h-6 bg-yellow-500 text-white text-xs font-bold rounded-full flex items-center justify-center">1</span>
+                            <span class="ml-3 text-sm font-medium">Marie D.</span>
+                        </div>
+                        <span class="text-sm text-gray-600">1,890 pts</span>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <span class="w-6 h-6 bg-gray-400 text-white text-xs font-bold rounded-full flex items-center justify-center">2</span>
+                            <span class="ml-3 text-sm font-medium">Thomas L.</span>
+                        </div>
+                        <span class="text-sm text-gray-600">1,654 pts</span>
+                    </div>
+                    
+                    <div class="flex items-center justify-between bg-primary/10 p-2 rounded-lg">
+                        <div class="flex items-center">
+                            <span class="w-6 h-6 bg-primary text-white text-xs font-bold rounded-full flex items-center justify-center">3</span>
+                            <span class="ml-3 text-sm font-medium">Toi</span>
+                        </div>
+                        <span class="text-sm text-primary font-semibold">1,250 pts</span>
+                    </div>
+                </div>
+                <button class="w-full mt-4 text-primary text-sm font-medium hover:text-primary/80">
+                    Voir le classement complet
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

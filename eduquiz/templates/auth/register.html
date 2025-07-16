@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}Inscription - EduQuiz{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-purple-100 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+        <div class="bg-white rounded-2xl shadow-xl p-8">
+            <div class="text-center">
+                <div class="mx-auto h-12 w-12 bg-primary rounded-full flex items-center justify-center">
+                    <i class="fas fa-user-plus text-white text-xl"></i>
+                </div>
+                <h2 class="mt-6 text-3xl font-bold text-gray-900">Inscription</h2>
+                <p class="mt-2 text-sm text-gray-600">
+                    Rejoins la communauté EduQuiz
+                </p>
+            </div>
+            
+            <form class="mt-8 space-y-6" method="post">
+                {% csrf_token %}
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="first_name" class="block text-sm font-medium text-gray-700">Prénom</label>
+                            <input id="first_name" name="first_name" type="text" required 
+                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-primary focus:border-primary">
+                        </div>
+                        <div>
+                            <label for="last_name" class="block text-sm font-medium text-gray-700">Nom</label>
+                            <input id="last_name" name="last_name" type="text" required 
+                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-primary focus:border-primary">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                        <input id="email" name="email" type="email" required 
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-primary focus:border-primary">
+                    </div>
+                    
+                    <div>
+                        <label for="user_type" class="block text-sm font-medium text-gray-700">Je suis</label>
+                        <select id="user_type" name="user_type" required 
+                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-primary focus:border-primary">
+                            <option value="">Choisir...</option>
+                            <option value="student">Élève</option>
+                            <option value="teacher">Enseignant</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-700">Mot de passe</label>
+                        <input id="password" name="password" type="password" required 
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-primary focus:border-primary">
+                    </div>
+                    
+                    <div>
+                        <label for="password_confirm" class="block text-sm font-medium text-gray-700">Confirmer le mot de passe</label>
+                        <input id="password_confirm" name="password_confirm" type="password" required 
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-primary focus:border-primary">
+                    </div>
+                </div>
+
+                <div class="flex items-center">
+                    <input id="terms" name="terms" type="checkbox" required
+                           class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded">
+                    <label for="terms" class="ml-2 block text-sm text-gray-900">
+                        J'accepte les <a href="#" class="text-primary hover:text-primary/80">conditions d'utilisation</a>
+                    </label>
+                </div>
+
+                <div>
+                    <button type="submit" 
+                            class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors">
+                        <i class="fas fa-user-plus mr-2"></i>
+                        Créer mon compte
+                    </button>
+                </div>
+
+                <div class="text-center">
+                    <p class="text-sm text-gray-600">
+                        Déjà un compte ?
+                        <a href="{% url 'login' %}" class="font-medium text-primary hover:text-primary/80">
+                            Se connecter
+                        </a>
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

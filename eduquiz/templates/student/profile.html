@@ -1,0 +1,243 @@
+{% extends 'base.html' %}
+
+{% block title %}Mon Profil - EduQuiz{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Profil principal -->
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="text-center">
+                    <img class="h-24 w-24 rounded-full mx-auto mb-4" 
+                         src="https://ui-avatars.com/api/?name={{ user.first_name }}+{{ user.last_name }}&background=6366f1&color=fff&size=96" 
+                         alt="Avatar">
+                    <h1 class="text-2xl font-bold text-gray-900">{{ user.first_name }} {{ user.last_name }}</h1>
+                    <p class="text-gray-600">Élève • 3ème</p>
+                    
+                    <!-- Niveau et progression -->
+                    <div class="mt-6 p-4 bg-gradient-to-r from-primary to-purple-600 rounded-lg text-white">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm opacity-90">Niveau</span>
+                            <span class="text-2xl font-bold">12</span>
+                        </div>
+                        <div class="w-full bg-white/20 rounded-full h-2 mb-2">
+                            <div class="bg-white h-2 rounded-full" style="width: 83%"></div>
+                        </div>
+                        <div class="text-xs opacity-90">1,250 / 1,500 XP</div>
+                    </div>
+                    
+                    <!-- Stats rapides -->
+                    <div class="grid grid-cols-2 gap-4 mt-6">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-gray-900">23</div>
+                            <div class="text-sm text-gray-600">Quiz réussis</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-gray-900">8</div>
+                            <div class="text-sm text-gray-600">Badges</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Badges récents -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mt-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Badges récents</h2>
+                <div class="space-y-3">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-medal text-yellow-600"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="font-medium text-gray-900">Maître des fractions</p>
+                            <p class="text-sm text-gray-600">Il y a 2 jours</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-fire text-green-600"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="font-medium text-gray-900">Série de 7 jours</p>
+                            <p class="text-sm text-gray-600">Il y a 1 semaine</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-lightning-bolt text-blue-600"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="font-medium text-gray-900">Vitesse éclair</p>
+                            <p class="text-sm text-gray-600">Il y a 2 semaines</p>
+                        </div>
+                    </div>
+                </div>
+                <button class="w-full mt-4 text-primary hover:text-primary/80 text-sm font-medium">
+                    Voir tous les badges
+                </button>
+            </div>
+        </div>
+
+        <!-- Contenu principal -->
+        <div class="lg:col-span-2 space-y-8">
+            <!-- Statistiques détaillées -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-6">Mes statistiques</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="text-center p-4 bg-blue-50 rounded-lg">
+                        <div class="text-3xl font-bold text-blue-600 mb-2">1,250</div>
+                        <div class="text-gray-600">Points totaux</div>
+                    </div>
+                    <div class="text-center p-4 bg-green-50 rounded-lg">
+                        <div class="text-3xl font-bold text-green-600 mb-2">78%</div>
+                        <div class="text-gray-600">Taux de réussite</div>
+                    </div>
+                    <div class="text-center p-4 bg-purple-50 rounded-lg">
+                        <div class="text-3xl font-bold text-purple-600 mb-2">42h</div>
+                        <div class="text-gray-600">Temps d'étude</div>
+                    </div>
+                </div>
+
+                <!-- Graphique des performances par matière -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Performance par matière</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center">
+                            <div class="w-20 text-sm text-gray-600">Maths</div>
+                            <div class="flex-1 mx-4">
+                                <div class="w-full bg-gray-200 rounded-full h-3">
+                                    <div class="bg-blue-500 h-3 rounded-full" style="width: 85%"></div>
+                                </div>
+                            </div>
+                            <div class="w-12 text-sm font-semibold text-gray-900">85%</div>
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <div class="w-20 text-sm text-gray-600">Français</div>
+                            <div class="flex-1 mx-4">
+                                <div class="w-full bg-gray-200 rounded-full h-3">
+                                    <div class="bg-green-500 h-3 rounded-full" style="width: 78%"></div>
+                                </div>
+                            </div>
+                            <div class="w-12 text-sm font-semibold text-gray-900">78%</div>
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <div class="w-20 text-sm text-gray-600">SVT</div>
+                            <div class="flex-1 mx-4">
+                                <div class="w-full bg-gray-200 rounded-full h-3">
+                                    <div class="bg-purple-500 h-3 rounded-full" style="width: 65%"></div>
+                                </div>
+                            </div>
+                            <div class="w-12 text-sm font-semibold text-gray-900">65%</div>
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <div class="w-20 text-sm text-gray-600">Histoire</div>
+                            <div class="flex-1 mx-4">
+                                <div class="w-full bg-gray-200 rounded-full h-3">
+                                    <div class="bg-yellow-500 h-3 rounded-full" style="width: 72%"></div>
+                                </div>
+                            </div>
+                            <div class="w-12 text-sm font-semibold text-gray-900">72%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activité récente -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-6">Activité récente</h2>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-check text-white"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="font-semibold text-gray-900">Quiz Français réussi</p>
+                                <p class="text-sm text-gray-600">Conjugaison - Le Présent • Il y a 2 heures</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-green-600 font-bold">18/20</div>
+                            <div class="text-sm text-gray-600">+75 pts</div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-medal text-white"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="font-semibold text-gray-900">Nouveau badge obtenu</p>
+                                <p class="text-sm text-gray-600">Maître des fractions • Hier</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between p-4 bg-orange-50 rounded-lg border border-orange-200">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-clock text-white"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="font-semibold text-gray-900">Défi chronométré terminé</p>
+                                <p class="text-sm text-gray-600">SVT - Le Système Digestif • Il y a 1 jour</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-orange-600 font-bold">2:34</div>
+                            <div class="text-sm text-gray-600">Record battu!</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Objectifs et défis -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-6">Mes objectifs</h2>
+                <div class="space-y-4">
+                    <div class="p-4 border border-gray-200 rounded-lg">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="font-semibold text-gray-900">Atteindre le niveau 13</h3>
+                            <span class="text-sm text-gray-600">83% complété</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+                            <div class="bg-primary h-2 rounded-full" style="width: 83%"></div>
+                        </div>
+                        <p class="text-sm text-gray-600">Plus que 250 XP à gagner</p>
+                    </div>
+                    
+                    <div class="p-4 border border-gray-200 rounded-lg">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="font-semibold text-gray-900">Série de 10 jours</h3>
+                            <span class="text-sm text-gray-600">70% complété</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+                            <div class="bg-green-500 h-2 rounded-full" style="width: 70%"></div>
+                        </div>
+                        <p class="text-sm text-gray-600">7 jours consécutifs • Plus que 3 jours</p>
+                    </div>
+                    
+                    <div class="p-4 border border-gray-200 rounded-lg">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="font-semibold text-gray-900">Maîtriser les SVT</h3>
+                            <span class="text-sm text-gray-600">45% complété</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+                            <div class="bg-purple-500 h-2 rounded-full" style="width: 45%"></div>
+                        </div>
+                        <p class="text-sm text-gray-600">Atteindre 80% de réussite en SVT</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

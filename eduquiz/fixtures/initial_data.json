@@ -1,0 +1,105 @@
+[
+    {
+      "model": "quiz.subject",
+      "pk": 1,
+      "fields": {
+        "name": "Mathématiques",
+        "slug": "mathematiques",
+        "icon": "fas fa-calculator",
+        "color": "blue"
+      }
+    },
+    {
+      "model": "quiz.subject",
+      "pk": 2,
+      "fields": {
+        "name": "Français",
+        "slug": "francais",
+        "icon": "fas fa-book",
+        "color": "green"
+      }
+    },
+    {
+      "model": "quiz.subject",
+      "pk": 3,
+      "fields": {
+        "name": "Sciences (SVT)",
+        "slug": "svt",
+        "icon": "fas fa-microscope",
+        "color": "purple"
+      }
+    },
+    {
+      "model": "quiz.subject",
+      "pk": 4,
+      "fields": {
+        "name": "Physique-Chimie",
+        "slug": "physique-chimie",
+        "icon": "fas fa-flask",
+        "color": "red"
+      }
+    },
+    {
+      "model": "quiz.subject",
+      "pk": 5,
+      "fields": {
+        "name": "Histoire-Géographie",
+        "slug": "histoire-geographie",
+        "icon": "fas fa-globe",
+        "color": "yellow"
+      }
+    },
+    {
+      "model": "quiz.subject",
+      "pk": 6,
+      "fields": {
+        "name": "Anglais",
+        "slug": "anglais",
+        "icon": "fas fa-language",
+        "color": "indigo"
+      }
+    },
+    {
+      "model": "gamification.badge",
+      "pk": 1,
+      "fields": {
+        "name": "Premier Quiz",
+        "description": "Félicitations pour avoir terminé votre premier quiz !",
+        "icon": "fas fa-star",
+        "color": "gold",
+        "badge_type": "achievement",
+        "points_required": 0,
+        "condition": { "first_quiz": true },
+        "is_active": true
+      }
+    },
+    {
+      "model": "gamification.badge",
+      "pk": 2,
+      "fields": {
+        "name": "Série de 7 jours",
+        "description": "Vous avez étudié 7 jours consécutifs !",
+        "icon": "fas fa-fire",
+        "color": "orange",
+        "badge_type": "streak",
+        "points_required": 0,
+        "condition": { "streak_days": 7 },
+        "is_active": true
+      }
+    },
+    {
+      "model": "gamification.badge",
+      "pk": 3,
+      "fields": {
+        "name": "Maître des fractions",
+        "description": "Vous maîtrisez parfaitement les fractions !",
+        "icon": "fas fa-medal",
+        "color": "gold",
+        "badge_type": "mastery",
+        "points_required": 100,
+        "condition": { "subject": "mathematiques", "topic": "fractions", "success_rate": 90 },
+        "is_active": true
+      }
+    }
+  ]
+  

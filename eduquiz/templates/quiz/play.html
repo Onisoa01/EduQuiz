@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+
+{% block title %}Quiz - {{ quiz.title }} - EduQuiz{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8" x-data="quizApp()">
+    <!-- Header avec progression -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">Géométrie - Les Triangles</h1>
+                <p class="text-gray-600">Mathématiques • 3ème • 15 questions</p>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-primary" x-text="timeLeft"></div>
+                    <div class="text-xs text-gray-600">temps restant</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-gray-900" x-text="score"></div>
+                    <div class="text-xs text-gray-600">points</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Barre de progression -->
+        <div class="w-full bg-gray-200 rounded-full h-3 mb-2">
+            <div class="bg-gradient-to-r from-primary to-purple-600 h-3 rounded-full transition-all duration-300" 
+                 :style="`width: ${(currentQuestion / totalQuestions) * 100}%`"></div>
+        </div>
+        <div class="flex justify-between text-sm text-gray-600">
+            <span>Question <span x-text="currentQuestion"></span> sur <span x-text="totalQuestions"></span></span>
+            <span x-text="`${Math.round((currentQuestion / totalQuestions) * 100)}% complété`"></span>
+        </div>
+    </div>
+
+    <!-- Question -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 mb-8">
+        <div class="mb-6">
+            <div class="flex items-center mb-4">
+                <span class="bg-primary text-white px-3 py-1 rounded-full text-sm font-medium">
+                    Question <span x-text="currentQuestion"></span>
+                </span>
+                <span class="ml-3 bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
+                    +5 points
+                </span>
+            </div>
+            <h2 class="text-xl font-semibold text-gray-900 leading-relaxed">
+                Dans un triangle rectangle, si un angle mesure 30°, quel est la mesure du troisième angle ?
+            </h2>
+        </div>
+
+        <!-- Options de réponse -->
+        <div class="space-y-3">
+            <label class="flex items-center p-4 border-2 border-gray-200 rounded-lg hover:border-primary cursor-pointer transition-colors"
+                   :class="selectedAnswer === 'A' ? 'border-primary bg-primary/5' : ''">
+                <input type="radio" name="answer" value="A" x-model="selectedAnswer" class="sr-only">
+                <div class="w-8 h-8 rounded-full border-2 border-gray-300 flex items-center justify-center mr-4"
+                     :class="selectedAnswer === 'A' ? 'border-primary bg-primary text-white' : ''">
+                    <span class="text-sm font-semibold">A</span>
+                </div>
+                <span class="text-gray-900 font-medium">30°</span>
+            </label>
+
+            <label class="flex items-center p-4 border-2 border-gray-200 rounded-lg hover:border-primary cursor-pointer transition-colors"
+                   :class="selectedAnswer === 'B' ? 'border-primary bg-primary/5' : ''">
+                <input type="radio" name="answer" value="B" x-model="selectedAnswer" class="sr-only">
+                <div class="w-8 h-8 rounded-full border-2 border-gray-300 flex items-center justify-center mr-4"
+                     :class="selectedAnswer === 'B' ? 'border-primary bg-primary text-white' : ''">
+                    <span class="text-sm font-semibold">B</span>
+                </div>
+                <span class="text-gray-900 font-medium">45°</span>
+            </label>
+
+            <label class="flex items-center p-4 border-2 border-gray-200 rounded-lg hover:border-primary cursor-pointer transition-colors"
+                   :class="selectedAnswer === 'C' ? 'border-primary bg-primary/5' : ''">
+                <input type="radio" name="answer" value="C" x-model="selectedAnswer" class="sr-only">
+                <div class="w-8 h-8 rounded-full border-2 border-gray-300 flex items-center justify-center mr-4"
+                     :class="selectedAnswer === 'C' ? 'border-primary bg-primary text-white' : ''">
+                    <span class="text-sm font-semibold">C</span>
+                </div>
+                <span class="text-gray-900 font-medium">60°</span>
+            </label>
+
+            <label class="flex items-center p-4 border-2 border-gray-200 rounded-lg hover:border-primary cursor-pointer transition-colors"
+                   :class="selectedAnswer === 'D' ? 'border-primary bg-primary/5' : ''">
+                <input type="radio" name="answer" value="D" x-model="selectedAnswer" class="sr-only">
+                <div class="w-8 h-8 rounded-full border-2 border-gray-300 flex items-center justify-center mr-4"
+                     :class="selectedAnswer === 'D' ? 'border-primary bg-primary text-white' : ''">
+                    <span class="text-sm font-semibold">D</span>
+                </div>
+                <span class="text-gray-900 font-medium">90°</span>
+            </label>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center justify-between">
+        <button class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                :disabled="currentQuestion === 1">
+            <i class="fas fa-chevron-left mr-2"></i>
+            Question précédente
+        </button>
+        
+        <div class="flex space-x-4">
+            <button class="px-6 py-3 border border-orange-300 text-orange-700 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors">
+                <i class="fas fa-bookmark mr-2"></i>
+                Marquer pour révision
+            </button>
+            
+            <button class="px-8 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium"
+                    :disabled="!selectedAnswer"
+                    @click="nextQuestion()">
+                <span x-show="currentQuestion < totalQuestions">
+                    Question suivante
+                    <i class="fas fa-chevron-right ml-2"></i>
+                </span>
+                <span x-show="currentQuestion === totalQuestions">
+                    Terminer le quiz
+                    <i class="fas fa-check ml-2"></i>
+                </span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Aide contextuelle -->
+    <div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <div class="flex items-start">
+            <div class="flex-shrink-0">
+                <i class="fas fa-lightbulb text-blue-600 text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <h3 class="text-lg font-semibold text-blue-900">Astuce</h3>
+                <p class="text-blue-800 mt-1">
+                    Dans un triangle, la somme des trois angles est toujours égale à 180°. 
+                    Si tu connais deux angles, tu peux facilement calculer le troisième !
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function quizApp() {
+    return {
+        currentQuestion: 1,
+        totalQuestions: 15,
+        selectedAnswer: '',
+        score: 0,
+        timeLeft: '12:34',
+        
+        nextQuestion() {
+            if (this.selectedAnswer) {
+                // Logique pour vérifier la réponse et calculer le score
+                this.score += 5;
+                this.selectedAnswer = '';
+                
+                if (this.currentQuestion < this.totalQuestions) {
+                    this.currentQuestion++;
+                } else {
+                    // Terminer le quiz
+                    window.location.href = '/quiz/results/';
+                }
+            }
+        }
+    }
+}
+</script>
+{% endblock %}
