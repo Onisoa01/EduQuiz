@@ -1,0 +1,402 @@
+{% extends 'base.html' %}
+
+{% block title %}Éditer le Quiz - EduQuiz{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" x-data="quizEditor()">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <a href="{% url 'quiz_list' %}" class="text-gray-500 hover:text-primary">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">{{ quiz.title }}</h1>
+                    <p class="text-gray-600 mt-1">{{ quiz.subject.name }} • {{ quiz.level }} • Basé sur "{{ course.title }}"</p>
+                </div>
+            </div>
+            <div class="flex space-x-4">
+                {% if not quiz.is_published %}
+                    <button @click="publishQuiz()" 
+                            :disabled="questions.length === 0"
+                            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fas fa-globe mr-2"></i>Publier le quiz
+                    </button>
+                {% else %}
+                    <span class="px-4 py-2 bg-green-100 text-green-800 rounded-lg">
+                        <i class="fas fa-check-circle mr-2"></i>Quiz publié
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Panel principal -->
+        <div class="lg:col-span-2 space-y-8">
+            <!-- Génération IA -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-900">Génération automatique avec IA</h2>
+                        <p class="text-gray-600 mt-1">Utilisez Gemini 2.0 Flash pour analyser votre PDF et générer des questions</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <select x-model="numQuestions" class="px-3 py-2 border border-gray-300 rounded-lg">
+                            <option value="10">10 questions</option>
+                            <option value="15">15 questions</option>
+                            <option value="20">20 questions</option>
+                            <option value="25">25 questions</option>
+                        </select>
+                        <button @click="generateSuggestions()" 
+                                :disabled="isGenerating"
+                                class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50">
+                            <i class="fas fa-magic mr-2" :class="{'fa-spin': isGenerating}"></i>
+                            <span x-text="isGenerating ? 'Génération...' : 'Générer avec IA'"></span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Résultats de l'IA -->
+                <div x-show="aiSuggestions.length > 0" class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-gray-900">Questions suggérées par l'IA</h3>
+                        <div class="flex space-x-2">
+                            <button @click="selectAllSuggestions()" class="text-sm text-primary hover:text-primary/80">
+                                Tout sélectionner
+                            </button>
+                            <button @click="deselectAllSuggestions()" class="text-sm text-gray-500 hover:text-gray-700">
+                                Tout désélectionner
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="max-h-96 overflow-y-auto space-y-3">
+                        <template x-for="(suggestion, index) in aiSuggestions" :key="index">
+                            <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                                <div class="flex items-start space-x-3">
+                                    <input type="checkbox" 
+                                           x-model="suggestion.selected"
+                                           class="mt-1 h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded">
+                                    <div class="flex-1">
+                                        <div class="flex items-center space-x-2 mb-2">
+                                            <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full" 
+                                                  x-text="suggestion.question_type.toUpperCase()"></span>
+                                            <span class="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-full" 
+                                                  x-text="suggestion.difficulty"></span>
+                                            <span class="text-xs text-gray-500" x-text="suggestion.points + ' pts'"></span>
+                                        </div>
+                                        <p class="font-medium text-gray-900 mb-2" x-text="suggestion.question_text"></p>
+                                        
+                                        <!-- Choix pour les QCM -->
+                                        <div x-show="suggestion.question_type === 'mcq'" class="space-y-1 mb-2">
+                                            <template x-for="(choice, choiceIndex) in suggestion.choices" :key="choiceIndex">
+                                                <div class="flex items-center space-x-2 text-sm">
+                                                    <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
+                                                          :class="choice.is_correct ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'"
+                                                          x-text="String.fromCharCode(65 + choiceIndex)"></span>
+                                                    <span x-text="choice.text" :class="choice.is_correct ? 'font-semibold text-green-800' : 'text-gray-700'"></span>
+                                                </div>
+                                            </template>
+                                        </div>
+                                        
+                                        <!-- Explication -->
+                                        <div x-show="suggestion.explanation" class="text-sm text-gray-600 bg-blue-50 p-2 rounded">
+                                            <strong>Explication:</strong> <span x-text="suggestion.explanation"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+
+                    <div class="flex justify-end space-x-4 pt-4 border-t border-gray-200">
+                        <button @click="addSelectedSuggestions()" 
+                                class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                            <i class="fas fa-plus mr-2"></i>
+                            Ajouter les questions sélectionnées
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Message si pas de suggestions -->
+                <div x-show="!isGenerating && aiSuggestions.length === 0" class="text-center py-8">
+                    <i class="fas fa-robot text-gray-300 text-4xl mb-4"></i>
+                    <p class="text-gray-500">Cliquez sur "Générer avec IA" pour obtenir des suggestions de questions</p>
+                </div>
+            </div>
+
+            <!-- Questions actuelles -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold text-gray-900">Questions du quiz</h2>
+                    <span class="text-sm text-gray-600" x-text="`${questions.length} question(s)`"></span>
+                </div>
+
+                <div x-show="questions.length === 0" class="text-center py-8">
+                    <i class="fas fa-question-circle text-gray-300 text-4xl mb-4"></i>
+                    <p class="text-gray-500">Aucune question ajoutée pour le moment</p>
+                    <p class="text-sm text-gray-400 mt-2">Utilisez l'IA pour générer des questions automatiquement</p>
+                </div>
+
+                <div x-show="questions.length > 0" class="space-y-4">
+                    <template x-for="(question, index) in questions" :key="index">
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center space-x-2 mb-2">
+                                        <span class="text-sm font-medium text-gray-900" x-text="`Question ${index + 1}`"></span>
+                                        <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full" 
+                                              x-text="question.question_type.toUpperCase()"></span>
+                                        <span class="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-full" 
+                                              x-text="question.difficulty"></span>
+                                        <span class="text-xs text-gray-500" x-text="question.points + ' pts'"></span>
+                                    </div>
+                                    <p class="font-medium text-gray-900 mb-2" x-text="question.question_text"></p>
+                                    
+                                    <!-- Choix pour les QCM -->
+                                    <div x-show="question.question_type === 'mcq'" class="space-y-1">
+                                        <template x-for="(choice, choiceIndex) in question.choices" :key="choiceIndex">
+                                            <div class="flex items-center space-x-2 text-sm">
+                                                <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
+                                                      :class="choice.is_correct ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'"
+                                                      x-text="String.fromCharCode(65 + choiceIndex)"></span>
+                                                <span x-text="choice.text" :class="choice.is_correct ? 'font-semibold text-green-800' : 'text-gray-700'"></span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex space-x-2 ml-4">
+                                    <button @click="editQuestion(index)" class="p-2 text-gray-400 hover:text-primary">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button @click="removeQuestion(index)" class="p-2 text-gray-400 hover:text-red-600">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Sauvegarder -->
+                <div x-show="questions.length > 0" class="flex justify-end pt-6 border-t border-gray-200">
+                    <button @click="saveQuestions()" 
+                            :disabled="isSaving"
+                            class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50">
+                        <i class="fas fa-save mr-2" :class="{'fa-spin': isSaving}"></i>
+                        <span x-text="isSaving ? 'Sauvegarde...' : 'Sauvegarder les questions'"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- Informations du quiz -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Informations du quiz</h3>
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Matière:</span>
+                        <span class="font-medium">{{ quiz.subject.name }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Niveau:</span>
+                        <span class="font-medium">{{ quiz.level }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Difficulté:</span>
+                        <span class="font-medium">{{ quiz.get_difficulty_display }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Temps limite:</span>
+                        <span class="font-medium">{{ quiz.time_limit }} min</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Points:</span>
+                        <span class="font-medium">{{ quiz.points_reward }} pts</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Statut:</span>
+                        <span class="font-medium {% if quiz.is_published %}text-green-600{% else %}text-yellow-600{% endif %}">
+                            {% if quiz.is_published %}Publié{% else %}Brouillon{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Support de cours -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Support de cours</h3>
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-file-pdf text-red-600 text-2xl"></i>
+                    <div>
+                        <p class="font-medium text-gray-900">{{ course.title }}</p>
+                        <p class="text-sm text-gray-600">{{ course.created_at|date:"d/m/Y" }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aide -->
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-6">
+                <h3 class="text-lg font-semibold text-blue-900 mb-4">💡 Conseils</h3>
+                <div class="space-y-3 text-sm text-blue-800">
+                    <p>• L'IA analyse votre PDF pour générer des questions pertinentes</p>
+                    <p>• Vous pouvez modifier, supprimer ou ajouter des questions</p>
+                    <p>• Variez les types de questions pour un quiz plus intéressant</p>
+                    <p>• N'oubliez pas de publier votre quiz une fois terminé</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Fixed JavaScript syntax errors by properly initializing the questions array and using correct JSON serialization -->
+<script>
+function quizEditor() {
+    return {
+        questions: [],
+        aiSuggestions: [],
+        numQuestions: 15,
+        isGenerating: false,
+        isSaving: false,
+        
+        init() {
+            this.loadExistingQuestions();
+        },
+        
+        async loadExistingQuestions() {
+            try {
+                const response = await fetch(`/quiz/get-questions/{{ quiz.id }}/`);
+                if (response.ok) {
+                    const data = await response.json();
+                    this.questions = data.questions || [];
+                }
+            } catch (error) {
+                console.log('No existing questions found');
+            }
+        },
+        
+        async generateSuggestions() {
+            this.isGenerating = true;
+            try {
+                const response = await fetch(`/quiz/generate-suggestions/{{ quiz.id }}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    },
+                    body: JSON.stringify({
+                        num_questions: this.numQuestions
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    this.aiSuggestions = data.suggestions.questions.map(q => ({...q, selected: false}));
+                } else {
+                    alert('Erreur: ' + data.error);
+                }
+            } catch (error) {
+                alert('Erreur lors de la génération: ' + error.message);
+            } finally {
+                this.isGenerating = false;
+            }
+        },
+        
+        selectAllSuggestions() {
+            this.aiSuggestions.forEach(s => s.selected = true);
+        },
+        
+        deselectAllSuggestions() {
+            this.aiSuggestions.forEach(s => s.selected = false);
+        },
+        
+        addSelectedSuggestions() {
+            const selected = this.aiSuggestions.filter(s => s.selected);
+            this.questions.push(...selected);
+            this.aiSuggestions = [];
+        },
+        
+        removeQuestion(index) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer cette question ?')) {
+                this.questions.splice(index, 1);
+            }
+        },
+        
+        editQuestion(index) {
+            // TODO: Implémenter l'édition de question
+            alert('Fonctionnalité d\'édition à venir');
+        },
+        
+        async saveQuestions() {
+            if (this.questions.length === 0) {
+                alert('Aucune question à sauvegarder');
+                return;
+            }
+            
+            this.isSaving = true;
+            try {
+                const response = await fetch(`/quiz/save-questions/{{ quiz.id }}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    },
+                    body: JSON.stringify({
+                        questions: this.questions
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Questions sauvegardées avec succès !');
+                } else {
+                    alert('Erreur: ' + data.error);
+                }
+            } catch (error) {
+                alert('Erreur lors de la sauvegarde: ' + error.message);
+            } finally {
+                this.isSaving = false;
+            }
+        },
+        
+        async publishQuiz() {
+            if (this.questions.length === 0) {
+                alert('Vous devez ajouter des questions avant de publier le quiz');
+                return;
+            }
+            
+            if (confirm('Êtes-vous sûr de vouloir publier ce quiz ? Il sera visible par tous les élèves.')) {
+                try {
+                    const response = await fetch(`/quiz/publish/{{ quiz.id }}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        alert('Quiz publié avec succès !');
+                        location.reload();
+                    } else {
+                        alert('Erreur: ' + data.error);
+                    }
+                } catch (error) {
+                    alert('Erreur lors de la publication: ' + error.message);
+                }
+            }
+        }
+    }
+}
+</script>
+
+{% csrf_token %}
+{% endblock %}

@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}Mes Quiz - EduQuiz{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+     Header 
+    <div class="mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Mes Quiz</h1>
+                <p class="text-gray-600 mt-1">Gérez tous vos quiz créés</p>
+            </div>
+            <div class="flex space-x-4">
+                <a href="{% url 'upload_pdf' %}" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors">
+                    <i class="fas fa-upload mr-2"></i>Téléverser un PDF
+                </a>
+                <a href="{% url 'create_quiz' %}" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                    <i class="fas fa-plus mr-2"></i>Créer un quiz
+                </a>
+            </div>
+        </div>
+    </div>
+
+     Liste des quiz 
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-xl font-bold text-gray-900">Tous mes quiz</h2>
+        </div>
+        
+        <div class="divide-y divide-gray-200">
+            {% for quiz in quizzes %}
+            <div class="p-6 hover:bg-gray-50 transition-colors">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-{{ quiz.subject.color }}-100 rounded-lg flex items-center justify-center">
+                            <i class="{{ quiz.subject.icon }} text-{{ quiz.subject.color }}-600"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-lg font-semibold text-gray-900">{{ quiz.title }}</h3>
+                            <p class="text-sm text-gray-600">
+                                {{ quiz.subject.name }} • {{ quiz.level }} • {{ quiz.total_questions }} questions
+                            </p>
+                            <div class="flex items-center mt-2 space-x-4 text-sm text-gray-500">
+                                <span><i class="fas fa-clock mr-1"></i>{{ quiz.time_limit }} min</span>
+                                <span><i class="fas fa-star mr-1"></i>{{ quiz.points_reward }} pts</span>
+                                <span class="px-2 py-1 bg-{{ quiz.difficulty }}-100 text-{{ quiz.difficulty }}-800 rounded-full text-xs">
+                                    {{ quiz.get_difficulty_display }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <div class="text-center">
+                            <div class="text-lg font-bold text-gray-900">0</div>
+                            <div class="text-xs text-gray-600">participants</div>
+                        </div>
+                        
+                        <div class="flex space-x-2">
+                            {% if quiz.is_published %}
+                                <span class="px-3 py-1 bg-green-100 text-green-800 text-xs rounded-full">Publié</span>
+                            {% else %}
+                                <span class="px-3 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">Brouillon</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="flex space-x-2">
+                            <a href="{% url 'edit_quiz' quiz.id %}" class="p-2 text-gray-400 hover:text-primary">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button class="p-2 text-gray-400 hover:text-green-600">
+                                <i class="fas fa-chart-bar"></i>
+                            </button>
+                            <button class="p-2 text-gray-400 hover:text-red-600">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="p-12 text-center">
+                <i class="fas fa-question-circle text-gray-300 text-6xl mb-4"></i>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Aucun quiz créé</h3>
+                <p class="text-gray-600 mb-6">Commencez par téléverser un PDF ou créer un quiz manuellement</p>
+                <div class="flex justify-center space-x-4">
+                    <a href="{% url 'upload_pdf' %}" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors">
+                        <i class="fas fa-upload mr-2"></i>Téléverser un PDF
+                    </a>
+                    <a href="{% url 'create_quiz' %}" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors">
+                        <i class="fas fa-plus mr-2"></i>Créer un quiz
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+tailwind.config = {
+    theme: {
+        extend: {
+            colors: {
+                primary: '#6366f1',
+                secondary: '#f59e0b',
+                success: '#10b981',
+                danger: '#ef4444',
+                warning: '#f59e0b',
+                info: '#3b82f6',
+            }
+        }
+    }
+}
+</script>
+{% endblock %}

@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <!-- Header -->
+     Header 
     <div class="mb-8">
         <div class="flex items-center justify-between">
             <div>
@@ -22,7 +22,7 @@
         </div>
     </div>
 
-    <!-- Stats -->
+     Stats 
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div class="flex items-center">
@@ -31,7 +31,7 @@
                 </div>
                 <div class="ml-4">
                     <p class="text-sm font-medium text-gray-600">PDF téléversés</p>
-                    <p class="text-2xl font-bold text-gray-900">12</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ teacher_stats.total_courses }}</p>
                 </div>
             </div>
         </div>
@@ -43,7 +43,7 @@
                 </div>
                 <div class="ml-4">
                     <p class="text-sm font-medium text-gray-600">Quiz créés</p>
-                    <p class="text-2xl font-bold text-gray-900">28</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ teacher_stats.total_quizzes }}</p>
                 </div>
             </div>
         </div>
@@ -55,7 +55,7 @@
                 </div>
                 <div class="ml-4">
                     <p class="text-sm font-medium text-gray-600">Élèves actifs</p>
-                    <p class="text-2xl font-bold text-gray-900">156</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ teacher_stats.active_students }}</p>
                 </div>
             </div>
         </div>
@@ -67,16 +67,16 @@
                 </div>
                 <div class="ml-4">
                     <p class="text-sm font-medium text-gray-600">Taux de réussite</p>
-                    <p class="text-2xl font-bold text-gray-900">78%</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ teacher_stats.avg_success_rate|floatformat:0 }}%</p>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- Colonne principale -->
+         Colonne principale 
         <div class="lg:col-span-2 space-y-8">
-            <!-- Quiz récents -->
+             Quiz récents 
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <div class="flex items-center justify-between mb-6">
                     <h2 class="text-xl font-bold text-gray-900">Quiz récents</h2>
@@ -86,20 +86,21 @@
                 </div>
                 
                 <div class="space-y-4">
+                    {% for course in recent_courses %}
                     <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                         <div class="flex items-center">
                             <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-calculator text-blue-600"></i>
+                                <i class="fas fa-file-pdf text-blue-600"></i>
                             </div>
                             <div class="ml-4">
-                                <h3 class="font-semibold text-gray-900">Géométrie - Triangles</h3>
-                                <p class="text-sm text-gray-600">Mathématiques • 3ème • 15 questions</p>
+                                <h3 class="font-semibold text-gray-900">{{ course.title }}</h3>
+                                <p class="text-sm text-gray-600">{{ course.subject.name }} • {{ course.level }} • {{ course.created_at|date:"d/m/Y" }}</p>
                             </div>
                         </div>
                         <div class="flex items-center space-x-4">
                             <div class="text-center">
-                                <p class="text-sm font-semibold text-gray-900">23</p>
-                                <p class="text-xs text-gray-600">participants</p>
+                                <p class="text-sm font-semibold text-gray-900">{{ course.quizzes.count }}</p>
+                                <p class="text-xs text-gray-600">quiz</p>
                             </div>
                             <div class="flex space-x-2">
                                 <button class="p-2 text-gray-400 hover:text-primary">
@@ -111,93 +112,46 @@
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                        <div class="flex items-center">
-                            <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-book text-green-600"></i>
-                            </div>
-                            <div class="ml-4">
-                                <h3 class="font-semibold text-gray-900">Conjugaison - Présent</h3>
-                                <p class="text-sm text-gray-600">Français • 4ème • 20 questions</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center space-x-4">
-                            <div class="text-center">
-                                <p class="text-sm font-semibold text-gray-900">18</p>
-                                <p class="text-xs text-gray-600">participants</p>
-                            </div>
-                            <div class="flex space-x-2">
-                                <button class="p-2 text-gray-400 hover:text-primary">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="p-2 text-gray-400 hover:text-green-600">
-                                    <i class="fas fa-chart-bar"></i>
-                                </button>
-                            </div>
-                        </div>
+                    {% empty %}
+                    <div class="text-center py-8">
+                        <i class="fas fa-file-pdf text-gray-300 text-4xl mb-4"></i>
+                        <p class="text-gray-500">Aucun cours téléversé pour le moment</p>
+                        <a href="{% url 'upload_pdf' %}" class="text-primary hover:text-primary/80 text-sm font-medium">
+                            Téléverser votre premier PDF
+                        </a>
                     </div>
-                    
-                    <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                        <div class="flex items-center">
-                            <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-microscope text-purple-600"></i>
-                            </div>
-                            <div class="ml-4">
-                                <h3 class="font-semibold text-gray-900">Système digestif</h3>
-                                <p class="text-sm text-gray-600">SVT • 5ème • 12 questions</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center space-x-4">
-                            <div class="text-center">
-                                <p class="text-sm font-semibold text-gray-900">31</p>
-                                <p class="text-xs text-gray-600">participants</p>
-                            </div>
-                            <div class="flex space-x-2">
-                                <button class="p-2 text-gray-400 hover:text-primary">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="p-2 text-gray-400 hover:text-green-600">
-                                    <i class="fas fa-chart-bar"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                    {% endfor %}
                 </div>
             </div>
 
-            <!-- Activité récente -->
+             Activité récente 
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h2 class="text-xl font-bold text-gray-900 mb-6">Activité récente</h2>
                 <div class="space-y-4">
-                    <div class="flex items-center p-4 bg-blue-50 rounded-lg border border-blue-200">
-                        <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-                            <i class="fas fa-upload text-white"></i>
-                        </div>
-                        <div class="ml-4 flex-1">
-                            <p class="font-semibold text-gray-900">Nouveau PDF téléversé</p>
-                            <p class="text-sm text-gray-600">Cours_Geometrie_3eme.pdf • Il y a 2 heures</p>
-                        </div>
-                        <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">En traitement</span>
-                    </div>
-                    
+                    {% for attempt in recent_attempts %}
                     <div class="flex items-center p-4 bg-green-50 rounded-lg border border-green-200">
                         <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
                             <i class="fas fa-check text-white"></i>
                         </div>
                         <div class="ml-4 flex-1">
-                            <p class="font-semibold text-gray-900">Quiz validé et publié</p>
-                            <p class="text-sm text-gray-600">Conjugaison - Présent • Hier</p>
+                            <p class="font-semibold text-gray-900">{{ attempt.user.get_full_name }} a terminé un quiz</p>
+                            <p class="text-sm text-gray-600">{{ attempt.quiz.title }} • {{ attempt.completed_at|timesince }}</p>
                         </div>
-                        <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Publié</span>
+                        <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">{{ attempt.percentage_score }}%</span>
                     </div>
+                    {% empty %}
+                    <div class="text-center py-8">
+                        <i class="fas fa-chart-line text-gray-300 text-4xl mb-4"></i>
+                        <p class="text-gray-500">Aucune activité récente</p>
+                    </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>
 
-        <!-- Sidebar -->
+         Sidebar 
         <div class="space-y-6">
-            <!-- Actions rapides -->
+             Actions rapides 
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">Actions rapides</h3>
                 <div class="space-y-3">
@@ -209,24 +163,25 @@
                         <i class="fas fa-plus text-green-600 mr-3"></i>
                         <span class="text-sm font-medium">Créer un quiz</span>
                     </a>
-                    <a href="{% url 'student_progress' %}" class="flex items-center p-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
+                    <a href="#" class="flex items-center p-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
                         <i class="fas fa-chart-line text-blue-600 mr-3"></i>
                         <span class="text-sm font-medium">Voir les progrès</span>
                     </a>
-                    <a href="{% url 'class_management' %}" class="flex items-center p-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
+                    <a href="#" class="flex items-center p-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
                         <i class="fas fa-users text-purple-600 mr-3"></i>
                         <span class="text-sm font-medium">Gérer les classes</span>
                     </a>
                 </div>
             </div>
 
-            <!-- Quiz en attente -->
+             Quiz en attente 
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">Quiz en attente de validation</h3>
                 <div class="space-y-3">
+                    {% for quiz in pending_quizzes %}
                     <div class="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                        <p class="text-sm font-medium text-gray-900">Équations du 2nd degré</p>
-                        <p class="text-xs text-gray-600 mb-2">Généré automatiquement • 18 questions</p>
+                        <p class="text-sm font-medium text-gray-900">{{ quiz.title }}</p>
+                        <p class="text-xs text-gray-600 mb-2">Généré automatiquement • {{ quiz.total_questions }} questions</p>
                         <div class="flex space-x-2">
                             <button class="text-xs bg-primary text-white px-3 py-1 rounded hover:bg-primary/90">
                                 Valider
@@ -236,41 +191,51 @@
                             </button>
                         </div>
                     </div>
-                    
-                    <div class="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                        <p class="text-sm font-medium text-gray-900">La photosynthèse</p>
-                        <p class="text-xs text-gray-600 mb-2">Généré automatiquement • 15 questions</p>
-                        <div class="flex space-x-2">
-                            <button class="text-xs bg-primary text-white px-3 py-1 rounded hover:bg-primary/90">
-                                Valider
-                            </button>
-                            <button class="text-xs bg-gray-200 text-gray-700 px-3 py-1 rounded hover:bg-gray-300">
-                                Modifier
-                            </button>
-                        </div>
+                    {% empty %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-check-circle text-gray-300 text-2xl mb-2"></i>
+                        <p class="text-sm text-gray-500">Aucun quiz en attente</p>
                     </div>
+                    {% endfor %}
                 </div>
             </div>
 
-            <!-- Statistiques rapides -->
+             Statistiques rapides 
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">Cette semaine</h3>
                 <div class="space-y-3">
                     <div class="flex justify-between items-center">
                         <span class="text-sm text-gray-600">Quiz complétés</span>
-                        <span class="font-semibold text-gray-900">142</span>
+                        <span class="font-semibold text-gray-900">0</span>
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-sm text-gray-600">Moyenne générale</span>
-                        <span class="font-semibold text-green-600">78%</span>
+                        <span class="font-semibold text-green-600">--%</span>
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-sm text-gray-600">Temps moyen</span>
-                        <span class="font-semibold text-gray-900">8m 32s</span>
+                        <span class="font-semibold text-gray-900">--</span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+tailwind.config = {
+    theme: {
+        extend: {
+            colors: {
+                primary: '#6366f1',
+                secondary: '#f59e0b',
+                success: '#10b981',
+                danger: '#ef4444',
+                warning: '#f59e0b',
+                info: '#3b82f6',
+            }
+        }
+    }
+}
+</script>
 {% endblock %}

@@ -1,8 +1,16 @@
-from django.shortcuts import redirect, render
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Avg, Sum
 from quiz.models import Quiz, QuizAttempt, Course
 from gamification.models import UserBadge, Achievement
+
+@login_required
+def dashboard_redirect(request):
+    """Redirection automatique vers le bon dashboard"""
+    if request.user.user_type == 'teacher':
+        return redirect('teacher_dashboard')
+    else:
+        return redirect('student_dashboard')
 
 @login_required
 def student_dashboard(request):
@@ -18,36 +26,17 @@ def student_dashboard(request):
         'streak_days': request.user.streak_days,
     }
     
-    # Quiz récents
-    recent_attempts = QuizAttempt.objects.filter(
-        user=request.user, 
-        is_completed=True
-    ).select_related('quiz').order_by('-completed_at')[:5]
+    # Quiz récents (simulés pour le moment)
+    recent_attempts = []
     
-    # Badges récents
-    recent_badges = UserBadge.objects.filter(
-        user=request.user
-    ).select_related('badge').order_by('-earned_at')[:3]
+    # Badges récents (simulés pour le moment)
+    recent_badges = []
     
-    # Quiz recommandés
-    recommended_quizzes = Quiz.objects.filter(
-        is_published=True,
-        level=request.user.level
-    ).exclude(
-        id__in=QuizAttempt.objects.filter(
-            user=request.user, 
-            is_completed=True
-        ).values_list('quiz_id', flat=True)
-    )[:3]
+    # Quiz recommandés (simulés pour le moment)
+    recommended_quizzes = []
     
-    # Performance par matière
-    subject_performance = QuizAttempt.objects.filter(
-        user=request.user,
-        is_completed=True
-    ).values('quiz__subject__name').annotate(
-        avg_score=Avg('score'),
-        total_attempts=Count('id')
-    )
+    # Performance par matière (simulée pour le moment)
+    subject_performance = []
     
     context = {
         'user_stats': user_stats,
@@ -64,35 +53,22 @@ def teacher_dashboard(request):
     if request.user.user_type != 'teacher':
         return redirect('student_dashboard')
     
-    # Statistiques de l'enseignant
+    # Statistiques de l'enseignant (simulées pour le moment)
     teacher_stats = {
-        'total_courses': Course.objects.filter(teacher=request.user).count(),
-        'total_quizzes': Quiz.objects.filter(course__teacher=request.user).count(),
-        'active_students': QuizAttempt.objects.filter(
-            quiz__course__teacher=request.user
-        ).values('user').distinct().count(),
-        'avg_success_rate': QuizAttempt.objects.filter(
-            quiz__course__teacher=request.user,
-            is_completed=True
-        ).aggregate(avg_score=Avg('score'))['avg_score'] or 0,
+        'total_courses': 0,
+        'total_quizzes': 0,
+        'active_students': 0,
+        'avg_success_rate': 0,
     }
     
-    # Cours récents
-    recent_courses = Course.objects.filter(
-        teacher=request.user
-    ).order_by('-created_at')[:5]
+    # Cours récents (simulés pour le moment)
+    recent_courses = []
     
-    # Quiz en attente de validation
-    pending_quizzes = Quiz.objects.filter(
-        course__teacher=request.user,
-        is_published=False
-    )[:5]
+    # Quiz en attente de validation (simulés pour le moment)
+    pending_quizzes = []
     
-    # Activité récente des étudiants
-    recent_attempts = QuizAttempt.objects.filter(
-        quiz__course__teacher=request.user,
-        is_completed=True
-    ).select_related('user', 'quiz').order_by('-completed_at')[:10]
+    # Activité récente des étudiants (simulée pour le moment)
+    recent_attempts = []
     
     context = {
         'teacher_stats': teacher_stats,

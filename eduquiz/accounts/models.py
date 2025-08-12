@@ -15,6 +15,9 @@ class User(AbstractUser):
     streak_days = models.IntegerField(default=0)
     last_activity = models.DateTimeField(auto_now=True)
     
+    # S'assurer que l'email est unique
+    email = models.EmailField(unique=True)
+    
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.get_user_type_display()})"
 

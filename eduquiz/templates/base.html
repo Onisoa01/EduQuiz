@@ -31,17 +31,18 @@
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
                     <div class="flex-shrink-0">
-                        <h1 class="text-2xl font-bold text-primary">
+                        <a href="{% url 'home' %}" class="text-2xl font-bold text-primary">
                             <i class="fas fa-graduation-cap mr-2"></i>EduQuiz
-                        </h1>
+                        </a>
                     </div>
                 </div>
                 
                 <div class="flex items-center space-x-4">
                     {% if user.is_authenticated %}
+                        <!-- Afficher seulement si l'utilisateur est connecté -->
                         <div class="flex items-center space-x-2">
                             <i class="fas fa-coins text-yellow-500"></i>
-                            <span class="text-sm font-medium">1250 pts</span>
+                            <span class="text-sm font-medium">{{ user.points }} pts</span>
                         </div>
                         <div class="relative" x-data="{ open: false }">
                             <button @click="open = !open" class="flex items-center space-x-2 text-gray-700 hover:text-primary">
@@ -53,12 +54,22 @@
                                 <a href="{% url 'profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                     <i class="fas fa-user mr-2"></i>Profil
                                 </a>
+                                {% if user.user_type == 'teacher' %}
+                                    <a href="{% url 'teacher_dashboard' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <i class="fas fa-chalkboard-teacher mr-2"></i>Tableau de bord
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'student_dashboard' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <i class="fas fa-user-graduate mr-2"></i>Tableau de bord
+                                    </a>
+                                {% endif %}
                                 <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                     <i class="fas fa-sign-out-alt mr-2"></i>Déconnexion
                                 </a>
                             </div>
                         </div>
                     {% else %}
+                        <!-- Afficher seulement si l'utilisateur n'est pas connecté -->
                         <a href="{% url 'login' %}" class="text-gray-700 hover:text-primary px-3 py-2 text-sm font-medium">Connexion</a>
                         <a href="{% url 'register' %}" class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90">Inscription</a>
                     {% endif %}

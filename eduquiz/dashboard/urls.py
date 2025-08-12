@@ -4,4 +4,6 @@ from . import views
 urlpatterns = [
     path('student/', views.student_dashboard, name='student_dashboard'),
     path('teacher/', views.teacher_dashboard, name='teacher_dashboard'),
+    # Ajouter une redirection automatique
+    path('', views.dashboard_redirect, name='dashboard'),
 ]

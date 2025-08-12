@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}Créer un Quiz - EduQuiz{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center space-x-4">
+            <a href="{% url 'teacher_dashboard' %}" class="text-gray-500 hover:text-primary">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Créer un Quiz</h1>
+                <p class="text-gray-600 mt-1">Basé sur le cours : {{ course.title }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Informations du cours -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
+        <div class="flex items-start">
+            <div class="flex-shrink-0">
+                <i class="fas fa-file-pdf text-blue-600 text-2xl"></i>
+            </div>
+            <div class="ml-4">
+                <h3 class="text-lg font-semibold text-blue-900">Support de cours</h3>
+                <p class="text-blue-800 mt-1">{{ course.title }}</p>
+                <div class="flex items-center mt-2 space-x-4 text-sm text-blue-700">
+                    <span><i class="fas fa-book mr-1"></i>{{ course.subject.name }}</span>
+                    <span><i class="fas fa-layer-group mr-1"></i>{{ course.level }}</span>
+                    <span><i class="fas fa-calendar mr-1"></i>{{ course.created_at|date:"d/m/Y" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulaire de création du quiz -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+        <h2 class="text-xl font-bold text-gray-900 mb-6">Configuration du Quiz</h2>
+        
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Titre du quiz</label>
+                    {{ form.title }}
+                </div>
+
+                <div>
+                    <label for="{{ form.difficulty.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Niveau de difficulté</label>
+                    {{ form.difficulty }}
+                </div>
+            </div>
+
+            <div>
+                <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                {{ form.description }}
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="{{ form.time_limit.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Temps limite (minutes)</label>
+                    {{ form.time_limit }}
+                </div>
+
+                <div>
+                    <label for="{{ form.points_reward.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Points de récompense</label>
+                    {{ form.points_reward }}
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center justify-between pt-6 border-t border-gray-200">
+                <a href="{% url 'teacher_dashboard' %}" 
+                   class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                    Annuler
+                </a>
+                <button type="submit" 
+                        class="px-8 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium">
+                    <i class="fas fa-arrow-right mr-2"></i>
+                    Créer le quiz et configurer les questions
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Étapes suivantes -->
+    <div class="mt-8 bg-gray-50 rounded-lg p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Prochaines étapes</h3>
+        <div class="space-y-3">
+            <div class="flex items-center text-gray-700">
+                <div class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">1</div>
+                <span>Configurer les paramètres du quiz (cette étape)</span>
+            </div>
+            <div class="flex items-center text-gray-500">
+                <div class="w-8 h-8 bg-gray-300 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">2</div>
+                <span>Utiliser l'IA pour générer des questions automatiquement</span>
+            </div>
+            <div class="flex items-center text-gray-500">
+                <div class="w-8 h-8 bg-gray-300 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">3</div>
+                <span>Réviser, modifier et valider les questions proposées</span>
+            </div>
+            <div class="flex items-center text-gray-500">
+                <div class="w-8 h-8 bg-gray-300 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">4</div>
+                <span>Publier le quiz pour vos élèves</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
