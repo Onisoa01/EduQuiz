@@ -17,18 +17,11 @@ def quiz_catalog(request):
     quizzes = Quiz.objects.filter(is_published=True).select_related('subject')
     subjects = Subject.objects.all()
     
-    # Filtres
-    subject_filter = request.GET.get('subject')
-    level_filter = request.GET.get('level')
-    difficulty_filter = request.GET.get('difficulty')
-    search = request.GET.get('search')
+    if request.user.is_authenticated and hasattr(request.user, 'user_type') and request.user.user_type == 'student':
+        if hasattr(request.user, 'level') and request.user.level:
+            quizzes = quizzes.filter(level=request.user.level)
     
-    if subject_filter:
-        quizzes = quizzes.filter(subject__slug=subject_filter)
-    if level_filter:
-        quizzes = quizzes.filter(level=level_filter)
-    if difficulty_filter:
-        quizzes = quizzes.filter(difficulty=difficulty_filter)
+    search = request.GET.get('search')
     if search:
         quizzes = quizzes.filter(
             Q(title__icontains=search) | Q(description__icontains=search)
@@ -42,9 +35,6 @@ def quiz_catalog(request):
         'quizzes': quizzes,
         'subjects': subjects,
         'current_filters': {
-            'subject': subject_filter,
-            'level': level_filter,
-            'difficulty': difficulty_filter,
             'search': search,
         }
     }
@@ -79,10 +69,31 @@ def quiz_play(request, quiz_id):
     )
     
     questions = quiz.questions.prefetch_related('choices').all()
+    questions_data = []
+    
+    for question in questions:
+        question_data = {
+            'id': question.id,
+            'question_text': question.question_text,
+            'question_type': question.question_type,
+            'points': question.points,
+            'explanation': question.explanation,
+            'choices': []
+        }
+        
+        if question.question_type == 'mcq':
+            for choice in question.choices.all():
+                question_data['choices'].append({
+                    'id': choice.id,
+                    'choice_text': choice.choice_text,
+                    # 'is_correct': choice.is_correct  # Don't send this to frontend in production
+                })
+        
+        questions_data.append(question_data)
     
     context = {
         'quiz': quiz,
-        'questions': questions,
+        'questions': json.dumps(questions_data),  # Serialize for JavaScript
         'attempt': attempt,
     }
     return render(request, 'quiz/play.html', context)
@@ -120,7 +131,28 @@ def submit_quiz(request, quiz_id):
         
         elif question.question_type == 'open':
             answer.open_answer = answer_data.get('text', '')
-            # TODO: Intégrer l'IA pour évaluer les réponses ouvertes
+            # For now, give full points for open questions (can be manually graded later)
+            answer.points_earned = question.points
+            total_score += question.points
+        
+        elif question.question_type == 'true_false':
+            user_answer = answer_data.get('true_false_answer')
+            if user_answer is not None:
+                answer.true_false_answer = user_answer
+                if hasattr(question, 'correct_answer') and str(question.correct_answer).lower() == str(user_answer).lower():
+                    answer.is_correct = True
+                    answer.points_earned = question.points
+                    total_score += question.points
+                else:
+                    # Check if question has choices for true/false (alternative approach)
+                    correct_choice = question.choices.filter(is_correct=True).first()
+                    if correct_choice:
+                        # Compare with choice text (True/False)
+                        correct_value = correct_choice.choice_text.lower() == 'true'
+                        if correct_value == user_answer:
+                            answer.is_correct = True
+                            answer.points_earned = question.points
+                            total_score += question.points
         
         answer.save()
     
@@ -144,10 +176,25 @@ def quiz_results(request, attempt_id):
     attempt = get_object_or_404(QuizAttempt, id=attempt_id, user=request.user, is_completed=True)
     answers = attempt.answers.select_related('question', 'selected_choice').all()
     
+    score_percentage = (attempt.score / attempt.total_points * 100) if attempt.total_points > 0 else 0
+    excellent_threshold = 80
+    good_threshold = 60
+    
+    recommended_quizzes = Quiz.objects.filter(
+        subject=attempt.quiz.subject,
+        is_published=True
+    ).exclude(
+        id=attempt.quiz.id
+    ).prefetch_related('questions')[:6]  # Limit to 6 recommendations
+    
     context = {
         'attempt': attempt,
         'answers': answers,
         'quiz': attempt.quiz,
+        'score_percentage': score_percentage,
+        'excellent_threshold': excellent_threshold,
+        'good_threshold': good_threshold,
+        'recommended_quizzes': recommended_quizzes,  # Added recommended quizzes
     }
     return render(request, 'quiz/results.html', context)
 
@@ -159,19 +206,47 @@ def upload_pdf(request):
         messages.error(request, "Accès réservé aux enseignants.")
         return redirect('home')
     
+    subjects_count = Subject.objects.count()
+    print(f"[v0] Number of subjects in database: {subjects_count}")
+    if subjects_count == 0:
+        print(f"[v0] WARNING: No subjects found in database. Run create_subjects.py script first!")
+    else:
+        subjects_list = list(Subject.objects.values_list('name', flat=True))
+        print(f"[v0] Available subjects: {subjects_list}")
+    
     if request.method == 'POST':
+        print(f"[v0] POST request received for PDF upload")
         form = CourseUploadForm(request.POST, request.FILES)
+        print(f"[v0] Form data: {request.POST}")
+        print(f"[v0] Files: {request.FILES}")
+        
+        print(f"[v0] Form fields: {list(form.fields.keys())}")
+        if 'subject' in form.fields:
+            subject_field = form.fields['subject']
+            print(f"[v0] Subject field queryset count: {subject_field.queryset.count()}")
+        
         if form.is_valid():
+            print(f"[v0] Form is valid, saving course")
             course = form.save(commit=False)
             course.teacher = request.user
             course.save()
+            print(f"[v0] Course saved with ID: {course.id}")
             
             messages.success(request, "PDF téléversé avec succès! Vous pouvez maintenant créer des quiz basés sur ce cours.")
+            print(f"[v0] Redirecting to create_quiz_from_course with course_id: {course.id}")
             return redirect('create_quiz_from_course', course_id=course.id)
+        else:
+            print(f"[v0] Form is not valid. Errors: {form.errors}")
+            messages.error(request, "Erreur lors du téléversement. Veuillez vérifier les informations saisies.")
     else:
         form = CourseUploadForm()
+        print(f"[v0] Form initialized. Subject field queryset: {form.fields['subject'].queryset.count()}")
     
-    return render(request, 'teacher/upload_pdf.html', {'form': form})
+    context = {
+        'form': form,
+        'subjects_count': subjects_count,
+    }
+    return render(request, 'teacher/upload_pdf.html', context)
 
 @login_required
 def create_quiz_from_course(request, course_id):
@@ -215,6 +290,34 @@ def edit_quiz(request, quiz_id):
         return redirect('home')
     
     quiz = get_object_or_404(Quiz, id=quiz_id, course__teacher=request.user)
+    
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            action = data.get('action')
+            
+            if action == 'update_quiz':
+                # Update quiz basic info
+                quiz.title = data.get('title', quiz.title)
+                quiz.description = data.get('description', quiz.description)
+                quiz.time_limit = data.get('time_limit', quiz.time_limit)
+                quiz.save()
+                
+                return JsonResponse({'success': True, 'message': 'Quiz mis à jour avec succès'})
+                
+            elif action == 'save_questions':
+                # Save questions (existing functionality)
+                return save_quiz_questions(request, quiz_id)
+                
+            elif action == 'publish':
+                # Publish quiz (existing functionality)
+                return publish_quiz(request, quiz_id)
+                
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'error': 'Données JSON invalides'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    
     questions = quiz.questions.prefetch_related('choices').all()
     
     context = {
@@ -349,3 +452,39 @@ def create_quiz(request):
     # Rediriger vers l'upload de PDF d'abord
     messages.info(request, "Pour créer un quiz, commencez par téléverser le support de cours (PDF).")
     return redirect('upload_pdf')
+
+@login_required
+@require_http_methods(["GET"])
+def get_quiz_questions(request, quiz_id):
+    """Récupérer les questions existantes d'un quiz"""
+    if request.user.user_type != 'teacher':
+        return JsonResponse({'success': False, 'error': 'Accès non autorisé'})
+    
+    quiz = get_object_or_404(Quiz, id=quiz_id, course__teacher=request.user)
+    questions = quiz.questions.prefetch_related('choices').all()
+    
+    questions_data = []
+    for question in questions:
+        question_data = {
+            'question_text': question.question_text,
+            'question_type': question.question_type,
+            'points': question.points,
+            'explanation': question.explanation,
+            'difficulty': 'medium',  # Default value since not in model
+        }
+        
+        if question.question_type == 'mcq':
+            question_data['choices'] = [
+                {
+                    'text': choice.choice_text,
+                    'is_correct': choice.is_correct
+                }
+                for choice in question.choices.all()
+            ]
+        
+        questions_data.append(question_data)
+    
+    return JsonResponse({
+        'success': True,
+        'questions': questions_data
+    })
