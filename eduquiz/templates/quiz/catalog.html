@@ -3,310 +3,144 @@
 {% block title %}Catalogue des Quiz - EduQuiz{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <!-- Header -->
-    <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900">Catalogue des Quiz</h1>
-        <p class="text-gray-600 mt-2">Découvre tous les quiz disponibles et teste tes connaissances</p>
-    </div>
+<div class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Added back button and updated header with navy theme -->
+        <div class="mb-8">
+            <div class="flex items-center mb-4">
+                <button onclick="history.back()" class="bg-white text-slate-700 px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 mr-4">
+                    <i class="fas fa-arrow-left mr-2"></i>Retour
+                </button>
+                <div>
+                    <h1 class="text-3xl font-bold text-slate-800">Catalogue des Quiz</h1>
+                    <p class="text-slate-600 mt-2">
+                        {% if user.is_authenticated and user.user_type == 'student' and user.level %}
+                            Découvre les quiz de {{ user.level }} et teste tes connaissances
+                        {% else %}
+                            Découvre tous les quiz disponibles et teste tes connaissances
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
 
-    <!-- Filtres -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-                <label for="subject-filter" class="block text-sm font-medium text-gray-700 mb-2">Matière</label>
-                <select id="subject-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
-                    <option value="">Toutes les matières</option>
-                    <option value="mathematics">Mathématiques</option>
-                    <option value="french">Français</option>
-                    <option value="science">Sciences (SVT)</option>
-                    <option value="physics">Physique-Chimie</option>
-                    <option value="history">Histoire-Géographie</option>
-                    <option value="english">Anglais</option>
-                </select>
-            </div>
-            
-            <div>
-                <label for="level-filter" class="block text-sm font-medium text-gray-700 mb-2">Niveau</label>
-                <select id="level-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
-                    <option value="">Tous les niveaux</option>
-                    <option value="6eme">6ème</option>
-                    <option value="5eme">5ème</option>
-                    <option value="4eme">4ème</option>
-                    <option value="3eme">3ème</option>
-                    <option value="seconde">Seconde</option>
-                    <option value="premiere">Première</option>
-                    <option value="terminale">Terminale</option>
-                </select>
-            </div>
-            
-            <div>
-                <label for="difficulty-filter" class="block text-sm font-medium text-gray-700 mb-2">Difficulté</label>
-                <select id="difficulty-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
-                    <option value="">Toutes les difficultés</option>
-                    <option value="easy">Facile</option>
-                    <option value="medium">Moyen</option>
-                    <option value="hard">Difficile</option>
-                </select>
-            </div>
-            
-            <div>
-                <label for="search" class="block text-sm font-medium text-gray-700 mb-2">Rechercher</label>
+        <!-- Simplified search bar without class filters -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
+            <div class="max-w-md mx-auto">
+                <label for="search" class="block text-sm font-medium text-slate-700 mb-2">Rechercher un quiz</label>
                 <div class="relative">
-                    <input type="text" id="search" placeholder="Titre du quiz..." 
-                           class="w-full px-3 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
-                    <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                    <input type="text" id="search" placeholder="Titre du quiz..." value="{{ current_filters.search|default:'' }}"
+                           class="w-full px-4 py-3 pl-12 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-900 focus:border-blue-900">
+                    <i class="fas fa-search absolute left-4 top-4 text-slate-400"></i>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Quiz Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Quiz Card 1 -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
-            <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-4">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                        <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-calculator text-white"></i>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-white/80 text-sm">Mathématiques</p>
-                            <p class="text-white text-xs">3ème</p>
-                        </div>
-                    </div>
-                    <span class="bg-white/20 text-white text-xs px-2 py-1 rounded-full">Moyen</span>
-                </div>
-            </div>
-            <div class="p-6">
-                <h3 class="text-lg font-semibold text-gray-900 mb-2">Géométrie - Les Triangles</h3>
-                <p class="text-gray-600 text-sm mb-4">Teste tes connaissances sur les propriétés des triangles et leurs calculs.</p>
-                
-                <div class="flex items-center justify-between text-sm text-gray-500 mb-4">
-                    <span><i class="fas fa-question-circle mr-1"></i>15 questions</span>
-                    <span><i class="fas fa-clock mr-1"></i>12 min</span>
-                    <span><i class="fas fa-star mr-1"></i>+75 pts</span>
-                </div>
-                
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center text-sm text-gray-600">
-                        <i class="fas fa-users mr-1"></i>
-                        <span>234 participants</span>
-                    </div>
-                    <button class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors">
-                        Commencer
+                <div class="mt-4 text-center">
+                    <button onclick="applyFilters()" class="bg-blue-900 text-white px-8 py-3 rounded-lg hover:bg-blue-800 transition-colors font-medium">
+                        <i class="fas fa-search mr-2"></i>
+                        Rechercher
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- Quiz Card 2 -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
-            <div class="bg-gradient-to-r from-green-500 to-green-600 p-4">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                        <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-book text-white"></i>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-white/80 text-sm">Français</p>
-                            <p class="text-white text-xs">4ème</p>
+        <!-- Updated quiz cards with navy and white theme -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for quiz in quizzes %}
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                <div class="bg-gradient-to-r from-blue-900 to-blue-800 p-6">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+                                {% if quiz.subject.name == 'Mathématiques' %}
+                                    <i class="fas fa-calculator text-white text-lg"></i>
+                                {% elif quiz.subject.name == 'Français' %}
+                                    <i class="fas fa-book text-white text-lg"></i>
+                                {% elif quiz.subject.name == 'Sciences' %}
+                                    <i class="fas fa-microscope text-white text-lg"></i>
+                                {% elif quiz.subject.name == 'Physique-Chimie' %}
+                                    <i class="fas fa-flask text-white text-lg"></i>
+                                {% elif quiz.subject.name == 'Histoire-Géographie' %}
+                                    <i class="fas fa-globe text-white text-lg"></i>
+                                {% elif quiz.subject.name == 'Anglais' %}
+                                    <i class="fas fa-language text-white text-lg"></i>
+                                {% else %}
+                                    <i class="fas fa-book text-white text-lg"></i>
+                                {% endif %}
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-white font-medium">{{ quiz.subject.name }}</p>
+                                <p class="text-white/80 text-sm">{{ quiz.level|capfirst }}</p>
+                            </div>
                         </div>
                     </div>
-                    <span class="bg-white/20 text-white text-xs px-2 py-1 rounded-full">Facile</span>
+                </div>
+                <div class="p-6">
+                    <h3 class="text-xl font-bold text-slate-800 mb-3">{{ quiz.title }}</h3>
+                    <p class="text-slate-600 text-sm mb-4 leading-relaxed">{{ quiz.description|truncatewords:15 }}</p>
+                    
+                    <div class="flex items-center justify-between text-sm text-slate-500 mb-6">
+                        <div class="flex items-center">
+                            <i class="fas fa-question-circle mr-2 text-blue-900"></i>
+                            <span>{{ quiz.questions.count }} questions</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-clock mr-2 text-blue-900"></i>
+                            <span>{{ quiz.time_limit }} min</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-users mr-2 text-blue-900"></i>
+                            <span>{{ quiz.participants_count }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <div class="text-sm text-slate-600">
+                            <span class="bg-slate-100 px-3 py-1 rounded-full">
+                                +{{ quiz.questions.count|add:quiz.questions.count }} pts
+                            </span>
+                        </div>
+                        <a href="{% url 'quiz_play' quiz.id %}" class="bg-blue-900 text-white px-6 py-3 rounded-lg hover:bg-blue-800 transition-colors font-medium">
+                            Commencer
+                        </a>
+                    </div>
                 </div>
             </div>
-            <div class="p-6">
-                <h3 class="text-lg font-semibold text-gray-900 mb-2">Conjugaison - Le Présent</h3>
-                <p class="text-gray-600 text-sm mb-4">Maîtrise la conjugaison des verbes au présent de l'indicatif.</p>
-                
-                <div class="flex items-center justify-between text-sm text-gray-500 mb-4">
-                    <span><i class="fas fa-question-circle mr-1"></i>20 questions</span>
-                    <span><i class="fas fa-clock mr-1"></i>10 min</span>
-                    <span><i class="fas fa-star mr-1"></i>+60 pts</span>
-                </div>
-                
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center text-sm text-gray-600">
-                        <i class="fas fa-users mr-1"></i>
-                        <span>189 participants</span>
-                    </div>
-                    <button class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors">
-                        Commencer
+            {% empty %}
+            <div class="col-span-full text-center py-16">
+                <div class="bg-white rounded-xl p-8 shadow-sm">
+                    <i class="fas fa-search text-slate-400 text-5xl mb-4"></i>
+                    <h3 class="text-2xl font-bold text-slate-800 mb-3">Aucun quiz trouvé</h3>
+                    <p class="text-slate-600 mb-6">
+                        {% if user.is_authenticated and user.user_type == 'student' %}
+                            Aucun quiz disponible pour ta classe pour le moment.
+                        {% else %}
+                            Aucun quiz ne correspond à tes critères de recherche.
+                        {% endif %}
+                    </p>
+                    <button onclick="document.getElementById('search').value=''; applyFilters();" class="bg-blue-900 text-white px-6 py-3 rounded-lg hover:bg-blue-800 transition-colors">
+                        Voir tous les quiz
                     </button>
                 </div>
             </div>
+            {% endfor %}
         </div>
-
-        <!-- Quiz Card 3 -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
-            <div class="bg-gradient-to-r from-purple-500 to-purple-600 p-4">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                        <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-microscope text-white"></i>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-white/80 text-sm">SVT</p>
-                            <p class="text-white text-xs">5ème</p>
-                        </div>
-                    </div>
-                    <span class="bg-white/20 text-white text-xs px-2 py-1 rounded-full">Difficile</span>
-                </div>
-            </div>
-            <div class="p-6">
-                <h3 class="text-lg font-semibold text-gray-900 mb-2">Le Système Digestif</h3>
-                <p class="text-gray-600 text-sm mb-4">Découvre le fonctionnement de la digestion et des organes impliqués.</p>
-                
-                <div class="flex items-center justify-between text-sm text-gray-500 mb-4">
-                    <span><i class="fas fa-question-circle mr-1"></i>18 questions</span>
-                    <span><i class="fas fa-clock mr-1"></i>15 min</span>
-                    <span><i class="fas fa-star mr-1"></i>+90 pts</span>
-                </div>
-                
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center text-sm text-gray-600">
-                        <i class="fas fa-users mr-1"></i>
-                        <span>156 participants</span>
-                    </div>
-                    <button class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors">
-                        Commencer
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Quiz Card 4 -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
-            <div class="bg-gradient-to-r from-red-500 to-red-600 p-4">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                        <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-flask text-white"></i>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-white/80 text-sm">Physique-Chimie</p>
-                            <p class="text-white text-xs">3ème</p>
-                        </div>
-                    </div>
-                    <span class="bg-white/20 text-white text-xs px-2 py-1 rounded-full">Moyen</span>
-                </div>
-            </div>
-            <div class="p-6">
-                <h3 class="text-lg font-semibold text-gray-900 mb-2">Les Atomes et Molécules</h3>
-                <p class="text-gray-600 text-sm mb-4">Comprends la structure de la matière et les liaisons chimiques.</p>
-                
-                <div class="flex items-center justify-between text-sm text-gray-500 mb-4">
-                    <span><i class="fas fa-question-circle mr-1"></i>12 questions</span>
-                    <span><i class="fas fa-clock mr-1"></i>8 min</span>
-                    <span><i class="fas fa-star mr-1"></i>+65 pts</span>
-                </div>
-                
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center text-sm text-gray-600">
-                        <i class="fas fa-users mr-1"></i>
-                        <span>98 participants</span>
-                    </div>
-                    <button class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors">
-                        Commencer
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Quiz Card 5 -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
-            <div class="bg-gradient-to-r from-yellow-500 to-orange-500 p-4">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                        <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-globe text-white"></i>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-white/80 text-sm">Histoire-Géo</p>
-                            <p class="text-white text-xs">4ème</p>
-                        </div>
-                    </div>
-                    <span class="bg-white/20 text-white text-xs px-2 py-1 rounded-full">Facile</span>
-                </div>
-            </div>
-            <div class="p-6">
-                <h3 class="text-lg font-semibold text-gray-900 mb-2">La Révolution Française</h3>
-                <p class="text-gray-600 text-sm mb-4">Révise les événements marquants de la Révolution de 1789.</p>
-                
-                <div class="flex items-center justify-between text-sm text-gray-500 mb-4">
-                    <span><i class="fas fa-question-circle mr-1"></i>16 questions</span>
-                    <span><i class="fas fa-clock mr-1"></i>14 min</span>
-                    <span><i class="fas fa-star mr-1"></i>+70 pts</span>
-                </div>
-                
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center text-sm text-gray-600">
-                        <i class="fas fa-users mr-1"></i>
-                        <span>267 participants</span>
-                    </div>
-                    <button class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors">
-                        Commencer
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Quiz Card 6 -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
-            <div class="bg-gradient-to-r from-indigo-500 to-indigo-600 p-4">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                        <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-language text-white"></i>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-white/80 text-sm">Anglais</p>
-                            <p class="text-white text-xs">3ème</p>
-                        </div>
-                    </div>
-                    <span class="bg-white/20 text-white text-xs px-2 py-1 rounded-full">Moyen</span>
-                </div>
-            </div>
-            <div class="p-6">
-                <h3 class="text-lg font-semibold text-gray-900 mb-2">Present Perfect</h3>
-                <p class="text-gray-600 text-sm mb-4">Master the present perfect tense and its usage in English.</p>
-                
-                <div class="flex items-center justify-between text-sm text-gray-500 mb-4">
-                    <span><i class="fas fa-question-circle mr-1"></i>14 questions</span>
-                    <span><i class="fas fa-clock mr-1"></i>11 min</span>
-                    <span><i class="fas fa-star mr-1"></i>+55 pts</span>
-                </div>
-                
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center text-sm text-gray-600">
-                        <i class="fas fa-users mr-1"></i>
-                        <span>143 participants</span>
-                    </div>
-                    <button class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors">
-                        Commencer
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Pagination -->
-    <div class="flex items-center justify-center mt-12">
-        <nav class="flex items-center space-x-2">
-            <button class="px-3 py-2 text-gray-500 hover:text-primary disabled:opacity-50" disabled>
-                <i class="fas fa-chevron-left"></i>
-            </button>
-            <button class="px-4 py-2 bg-primary text-white rounded-lg">1</button>
-            <button class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">2</button>
-            <button class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">3</button>
-            <span class="px-2 text-gray-500">...</span>
-            <button class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">8</button>
-            <button class="px-3 py-2 text-gray-500 hover:text-primary">
-                <i class="fas fa-chevron-right"></i>
-            </button>
-        </nav>
     </div>
 </div>
+
+<script>
+function applyFilters() {
+    const search = document.getElementById('search').value;
+    
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    
+    window.location.href = '{% url "quiz_catalog" %}?' + params.toString();
+}
+
+// Allow Enter key to trigger search
+document.getElementById('search').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        applyFilters();
+    }
+});
+</script>
 {% endblock %}
