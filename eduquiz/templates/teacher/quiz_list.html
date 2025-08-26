@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-     Header 
+    <!-- Header -->
     <div class="mb-8">
         <div class="flex items-center justify-between">
             <div>
@@ -22,7 +22,7 @@
         </div>
     </div>
 
-     Liste des quiz 
+    <!-- Liste des quiz -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200">
         <div class="px-6 py-4 border-b border-gray-200">
             <h2 class="text-xl font-bold text-gray-900">Tous mes quiz</h2>
@@ -52,10 +52,23 @@
                     </div>
                     
                     <div class="flex items-center space-x-4">
+                        <!-- Updated to show dynamic participant count and statistics -->
                         <div class="text-center">
-                            <div class="text-lg font-bold text-gray-900">0</div>
+                            <div class="text-lg font-bold text-gray-900">{{ quiz.total_attempts|default:0 }}</div>
                             <div class="text-xs text-gray-600">participants</div>
                         </div>
+                        
+                        {% if quiz.total_attempts > 0 %}
+                        <div class="text-center">
+                            <div class="text-lg font-bold text-green-600">{{ quiz.success_percentage|floatformat:0 }}%</div>
+                            <div class="text-xs text-gray-600">réussite</div>
+                        </div>
+                        
+                        <div class="text-center">
+                            <div class="text-lg font-bold text-blue-600">{{ quiz.avg_score|floatformat:0 }}</div>
+                            <div class="text-xs text-gray-600">score moyen</div>
+                        </div>
+                        {% endif %}
                         
                         <div class="flex space-x-2">
                             {% if quiz.is_published %}
@@ -66,13 +79,19 @@
                         </div>
                         
                         <div class="flex space-x-2">
-                            <a href="{% url 'edit_quiz' quiz.id %}" class="p-2 text-gray-400 hover:text-primary">
+                            <a href="{% url 'edit_quiz' quiz.id %}" class="p-2 text-gray-400 hover:text-primary" title="Modifier">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <button class="p-2 text-gray-400 hover:text-green-600">
+                            <!-- Added link to view quiz participants and their scores -->
+                            {% if quiz.is_published and quiz.total_attempts > 0 %}
+                            <a href="{% url 'quiz_participants' quiz.id %}" class="p-2 text-gray-400 hover:text-green-600" title="Voir les participants">
+                                <i class="fas fa-users"></i>
+                            </a>
+                            {% endif %}
+                            <button class="p-2 text-gray-400 hover:text-blue-600" title="Statistiques">
                                 <i class="fas fa-chart-bar"></i>
                             </button>
-                            <button class="p-2 text-gray-400 hover:text-red-600">
+                            <button class="p-2 text-gray-400 hover:text-red-600" title="Supprimer">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
