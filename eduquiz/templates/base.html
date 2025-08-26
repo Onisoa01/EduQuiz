@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}EduQuiz - Apprentissage Gamifié{% endblock %}</title>
+    <title>{% block title %}EduQuiz - Lycée Saint Famille{% endblock %}</title>
+    <!-- Added cache control headers to prevent navigation caching issues -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -12,12 +16,26 @@
             theme: {
                 extend: {
                     colors: {
-                        primary: '#6366f1',
-                        secondary: '#f59e0b',
-                        success: '#10b981',
-                        danger: '#ef4444',
-                        warning: '#f59e0b',
-                        info: '#3b82f6',
+                        primary: '#1e3a8a', // Navy blue
+                        secondary: '#3b82f6', // Lighter blue
+                        accent: '#1d4ed8', // Medium blue
+                        success: '#059669',
+                        danger: '#dc2626',
+                        warning: '#d97706',
+                        info: '#0284c7',
+                        navy: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                            950: '#172554'
+                        }
                     }
                 }
             }
@@ -26,52 +44,88 @@
 </head>
 <body class="bg-gray-50 min-h-screen">
     {% block navbar %}
-    <nav class="bg-white shadow-lg border-b border-gray-200">
+    <!-- Updated navbar with navy blue theme and Lycée Saint Famille branding -->
+    <nav class="bg-navy-900 shadow-lg border-b border-navy-800">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
                     <div class="flex-shrink-0">
-                        <a href="{% url 'home' %}" class="text-2xl font-bold text-primary">
-                            <i class="fas fa-graduation-cap mr-2"></i>EduQuiz
+                        <a href="{% url 'home' %}" class="text-2xl font-bold text-white">
+                            <i class="fas fa-graduation-cap mr-2"></i>Lycée Saint Famille
                         </a>
                     </div>
+                    <!-- Enhanced navigation menu for quiz catalog -->
+                    {% if user.is_authenticated %}
+                    <div class="hidden md:block ml-10">
+                        <div class="flex items-baseline space-x-4">
+                            {% if user.user_type == 'teacher' %}
+                                <a href="{% url 'teacher_dashboard' %}" class="text-gray-200 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                                    <i class="fas fa-tachometer-alt mr-2"></i>Tableau de bord
+                                </a>
+                                <a href="{% url 'quiz_list' %}" class="text-gray-200 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                                    <i class="fas fa-list-alt mr-2"></i>Mes Quiz
+                                </a>
+                                <a href="{% url 'upload_pdf' %}" class="text-gray-200 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                                    <i class="fas fa-upload mr-2"></i>Nouveau Quiz
+                                </a>
+                            {% else %}
+                                <a href="{% url 'quiz_catalog' %}" class="text-gray-200 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                                    <i class="fas fa-list mr-2"></i>Quiz disponibles
+                                </a>
+                                <a href="{% url 'student_dashboard' %}" class="text-gray-200 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                                    <i class="fas fa-tachometer-alt mr-2"></i>Tableau de bord
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
                 
                 <div class="flex items-center space-x-4">
                     {% if user.is_authenticated %}
                         <!-- Afficher seulement si l'utilisateur est connecté -->
                         <div class="flex items-center space-x-2">
-                            <i class="fas fa-coins text-yellow-500"></i>
-                            <span class="text-sm font-medium">{{ user.points }} pts</span>
+                            <i class="fas fa-coins text-yellow-400"></i>
+                            <span class="text-sm font-medium text-white">{{ user.points }} pts</span>
                         </div>
                         <div class="relative" x-data="{ open: false }">
-                            <button @click="open = !open" class="flex items-center space-x-2 text-gray-700 hover:text-primary">
-                                <img class="h-8 w-8 rounded-full" src="https://ui-avatars.com/api/?name={{ user.first_name }}+{{ user.last_name }}&background=6366f1&color=fff" alt="Avatar">
+                            <button @click="open = !open" class="flex items-center space-x-2 text-gray-200 hover:text-white">
+                                <img class="h-8 w-8 rounded-full" src="https://ui-avatars.com/api/?name={{ user.first_name }}+{{ user.last_name }}&background=1e3a8a&color=fff" alt="Avatar">
                                 <span class="text-sm font-medium">{{ user.first_name }}</span>
                                 <i class="fas fa-chevron-down text-xs"></i>
                             </button>
-                            <div x-show="open" @click.away="open = false" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-                                <a href="{% url 'profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                    <i class="fas fa-user mr-2"></i>Profil
+                            <div x-show="open" @click.away="open = false" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                                <a href="{% url 'profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-navy-50">
+                                    <i class="fas fa-user mr-2 text-navy-600"></i>Profil
                                 </a>
+                                <!-- Enhanced dropdown menu with role-specific links -->
                                 {% if user.user_type == 'teacher' %}
-                                    <a href="{% url 'teacher_dashboard' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                        <i class="fas fa-chalkboard-teacher mr-2"></i>Tableau de bord
+                                    <a href="{% url 'teacher_dashboard' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-navy-50">
+                                        <i class="fas fa-chalkboard-teacher mr-2 text-navy-600"></i>Tableau de bord
+                                    </a>
+                                    <a href="{% url 'quiz_list' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-navy-50">
+                                        <i class="fas fa-list-alt mr-2 text-navy-600"></i>Mes Quiz
+                                    </a>
+                                    <a href="{% url 'upload_pdf' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-navy-50">
+                                        <i class="fas fa-upload mr-2 text-navy-600"></i>Nouveau Quiz
                                     </a>
                                 {% else %}
-                                    <a href="{% url 'student_dashboard' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                        <i class="fas fa-user-graduate mr-2"></i>Tableau de bord
+                                    <a href="{% url 'quiz_catalog' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-navy-50 md:hidden">
+                                        <i class="fas fa-list mr-2 text-navy-600"></i>Quiz disponibles
+                                    </a>
+                                    <a href="{% url 'student_dashboard' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-navy-50">
+                                        <i class="fas fa-user-graduate mr-2 text-navy-600"></i>Tableau de bord
                                     </a>
                                 {% endif %}
-                                <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                    <i class="fas fa-sign-out-alt mr-2"></i>Déconnexion
+                                <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-red-50">
+                                    <i class="fas fa-sign-out-alt mr-2 text-red-600"></i>Déconnexion
                                 </a>
                             </div>
                         </div>
                     {% else %}
                         <!-- Afficher seulement si l'utilisateur n'est pas connecté -->
-                        <a href="{% url 'login' %}" class="text-gray-700 hover:text-primary px-3 py-2 text-sm font-medium">Connexion</a>
-                        <a href="{% url 'register' %}" class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90">Inscription</a>
+                        <a href="{% url 'login' %}" class="text-gray-200 hover:text-white px-3 py-2 text-sm font-medium">Connexion</a>
+                        <a href="{% url 'register' %}" class="bg-white text-navy-900 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors">Inscription</a>
                     {% endif %}
                 </div>
             </div>
@@ -83,6 +137,27 @@
         {% block content %}{% endblock %}
     </main>
 
-    {% block scripts %}{% endblock %}
+    {% block scripts %}
+    <!-- Clear cache when user logs out -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const logoutLinks = document.querySelectorAll('a[href*="logout"]');
+            logoutLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    // Clear browser cache
+                    if ('caches' in window) {
+                        caches.keys().then(names => {
+                            names.forEach(name => {
+                                caches.delete(name);
+                            });
+                        });
+                    }
+                    // Clear session storage
+                    sessionStorage.clear();
+                });
+            });
+        });
+    </script>
+    {% endblock %}
 </body>
 </html>
