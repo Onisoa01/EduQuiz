@@ -41,10 +41,12 @@
                 {% csrf_token %}
                 <div class="space-y-4">
                     <div>
-                        <label for="username" class="block text-sm font-medium text-gray-700">Email</label>
-                        <input id="username" name="username" type="email" required 
+                        <!-- Updated label and input to accept username or email -->
+                        <label for="username" class="block text-sm font-medium text-gray-700">Nom d'utilisateur ou Email</label>
+                        <input id="username" name="username" type="text" required 
                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
-                               placeholder="votre@email.com">
+                               placeholder="nom.utilisateur ou votre@email.com">
+                        <p class="mt-1 text-xs text-gray-500">Vous pouvez utiliser votre nom d'utilisateur ou votre email</p>
                     </div>
                     
                     <div>
