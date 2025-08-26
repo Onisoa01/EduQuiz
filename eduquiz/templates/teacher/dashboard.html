@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-     Header 
+    <!-- Header -->
     <div class="mb-8">
         <div class="flex items-center justify-between">
             <div>
@@ -22,7 +22,31 @@
         </div>
     </div>
 
-     Stats 
+    <!-- Added success/error message display -->
+    {% if messages %}
+        <div class="mb-6">
+            {% for message in messages %}
+                <div class="p-4 rounded-lg mb-4 {% if message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200{% elif message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200{% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            {% if message.tags == 'error' %}
+                                <i class="fas fa-exclamation-circle"></i>
+                            {% elif message.tags == 'success' %}
+                                <i class="fas fa-check-circle"></i>
+                            {% else %}
+                                <i class="fas fa-info-circle"></i>
+                            {% endif %}
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium">{{ message }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Stats -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div class="flex items-center">
@@ -31,7 +55,7 @@
                 </div>
                 <div class="ml-4">
                     <p class="text-sm font-medium text-gray-600">PDF téléversés</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ teacher_stats.total_courses }}</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ teacher_stats.total_courses|default:0 }}</p>
                 </div>
             </div>
         </div>
@@ -43,7 +67,7 @@
                 </div>
                 <div class="ml-4">
                     <p class="text-sm font-medium text-gray-600">Quiz créés</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ teacher_stats.total_quizzes }}</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ teacher_stats.total_quizzes|default:0 }}</p>
                 </div>
             </div>
         </div>
@@ -54,8 +78,8 @@
                     <i class="fas fa-users text-purple-600 text-xl"></i>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Élèves actifs</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ teacher_stats.active_students }}</p>
+                    <p class="text-sm font-medium text-gray-600">Quiz publiés</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ teacher_stats.published_quizzes|default:0 }}</p>
                 </div>
             </div>
         </div>
@@ -66,65 +90,78 @@
                     <i class="fas fa-chart-bar text-orange-600 text-xl"></i>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Taux de réussite</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ teacher_stats.avg_success_rate|floatformat:0 }}%</p>
+                    <p class="text-sm font-medium text-gray-600">Participations</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ teacher_stats.total_attempts|default:0 }}</p>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-         Colonne principale 
+        <!-- Colonne principale -->
         <div class="lg:col-span-2 space-y-8">
-             Quiz récents 
+            <!-- Updated quiz list to show published status and actions -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-xl font-bold text-gray-900">Quiz récents</h2>
-                    <a href="{% url 'quiz_list' %}" class="text-primary hover:text-primary/80 text-sm font-medium">
-                        Voir tout
-                    </a>
+                    <h2 class="text-xl font-bold text-gray-900">Mes Quiz</h2>
+                    <button onclick="refreshDashboard()" class="text-primary hover:text-primary/80 text-sm font-medium">
+                        <i class="fas fa-sync-alt mr-1"></i>Actualiser
+                    </button>
                 </div>
                 
-                <div class="space-y-4">
-                    {% for course in recent_courses %}
+                <div class="space-y-4" id="quiz-list">
+                    {% for quiz in teacher_quizzes %}
                     <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                         <div class="flex items-center">
-                            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-file-pdf text-blue-600"></i>
+                            <div class="w-10 h-10 {% if quiz.is_published %}bg-green-100{% else %}bg-yellow-100{% endif %} rounded-lg flex items-center justify-center">
+                                <i class="fas {% if quiz.is_published %}fa-check-circle text-green-600{% else %}fa-clock text-yellow-600{% endif %}"></i>
                             </div>
                             <div class="ml-4">
-                                <h3 class="font-semibold text-gray-900">{{ course.title }}</h3>
-                                <p class="text-sm text-gray-600">{{ course.subject.name }} • {{ course.level }} • {{ course.created_at|date:"d/m/Y" }}</p>
+                                <h3 class="font-semibold text-gray-900">{{ quiz.title }}</h3>
+                                <p class="text-sm text-gray-600">
+                                    {{ quiz.subject.name }} • {{ quiz.level }} • 
+                                    {% if quiz.is_published %}
+                                        <span class="text-green-600 font-medium">Publié</span>
+                                    {% else %}
+                                        <span class="text-yellow-600 font-medium">Brouillon</span>
+                                    {% endif %}
+                                </p>
                             </div>
                         </div>
                         <div class="flex items-center space-x-4">
                             <div class="text-center">
-                                <p class="text-sm font-semibold text-gray-900">{{ course.quizzes.count }}</p>
-                                <p class="text-xs text-gray-600">quiz</p>
+                                <p class="text-sm font-semibold text-gray-900">{{ quiz.questions.count }}</p>
+                                <p class="text-xs text-gray-600">questions</p>
                             </div>
                             <div class="flex space-x-2">
-                                <button class="p-2 text-gray-400 hover:text-primary">
+                                <a href="{% url 'edit_quiz' quiz.id %}" class="p-2 text-gray-400 hover:text-primary" title="Modifier">
                                     <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="p-2 text-gray-400 hover:text-green-600">
+                                </a>
+                                {% if quiz.is_published %}
+                                <button onclick="showQuizStats({{ quiz.id }})" class="p-2 text-gray-400 hover:text-green-600" title="Statistiques">
                                     <i class="fas fa-chart-bar"></i>
                                 </button>
+                                {% else %}
+                                <button onclick="confirmPublish({{ quiz.id }})" class="p-2 text-gray-400 hover:text-blue-600" title="Publier">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
                     {% empty %}
                     <div class="text-center py-8">
-                        <i class="fas fa-file-pdf text-gray-300 text-4xl mb-4"></i>
-                        <p class="text-gray-500">Aucun cours téléversé pour le moment</p>
+                        <i class="fas fa-question-circle text-gray-300 text-4xl mb-4"></i>
+                        <p class="text-gray-500">Aucun quiz créé pour le moment</p>
                         <a href="{% url 'upload_pdf' %}" class="text-primary hover:text-primary/80 text-sm font-medium">
-                            Téléverser votre premier PDF
+                            Commencer par téléverser un PDF
                         </a>
                     </div>
                     {% endfor %}
                 </div>
             </div>
 
-             Activité récente 
+            <!-- Activité récente -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h2 class="text-xl font-bold text-gray-900 mb-6">Activité récente</h2>
                 <div class="space-y-4">
@@ -149,9 +186,9 @@
             </div>
         </div>
 
-         Sidebar 
+        <!-- Sidebar -->
         <div class="space-y-6">
-             Actions rapides 
+            <!-- Actions rapides -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">Actions rapides</h3>
                 <div class="space-y-3">
@@ -163,9 +200,9 @@
                         <i class="fas fa-plus text-green-600 mr-3"></i>
                         <span class="text-sm font-medium">Créer un quiz</span>
                     </a>
-                    <a href="#" class="flex items-center p-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
-                        <i class="fas fa-chart-line text-blue-600 mr-3"></i>
-                        <span class="text-sm font-medium">Voir les progrès</span>
+                    <a href="{% url 'quiz_list' %}" class="flex items-center p-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
+                        <i class="fas fa-list text-blue-600 mr-3"></i>
+                        <span class="text-sm font-medium">Tous mes quiz</span>
                     </a>
                     <a href="#" class="flex items-center p-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
                         <i class="fas fa-users text-purple-600 mr-3"></i>
@@ -174,50 +211,66 @@
                 </div>
             </div>
 
-             Quiz en attente 
+            <!-- Updated pending quizzes section -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">Quiz en attente de validation</h3>
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Quiz en brouillon</h3>
                 <div class="space-y-3">
-                    {% for quiz in pending_quizzes %}
+                    {% for quiz in draft_quizzes %}
                     <div class="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                         <p class="text-sm font-medium text-gray-900">{{ quiz.title }}</p>
-                        <p class="text-xs text-gray-600 mb-2">Généré automatiquement • {{ quiz.total_questions }} questions</p>
+                        <p class="text-xs text-gray-600 mb-2">{{ quiz.questions.count }} questions</p>
                         <div class="flex space-x-2">
-                            <button class="text-xs bg-primary text-white px-3 py-1 rounded hover:bg-primary/90">
-                                Valider
-                            </button>
-                            <button class="text-xs bg-gray-200 text-gray-700 px-3 py-1 rounded hover:bg-gray-300">
+                            <a href="{% url 'edit_quiz' quiz.id %}" class="text-xs bg-primary text-white px-3 py-1 rounded hover:bg-primary/90">
                                 Modifier
+                            </a>
+                            <button onclick="confirmPublish({{ quiz.id }})" class="text-xs bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">
+                                Publier
                             </button>
                         </div>
                     </div>
                     {% empty %}
                     <div class="text-center py-4">
                         <i class="fas fa-check-circle text-gray-300 text-2xl mb-2"></i>
-                        <p class="text-sm text-gray-500">Aucun quiz en attente</p>
+                        <p class="text-sm text-gray-500">Aucun quiz en brouillon</p>
                     </div>
                     {% endfor %}
                 </div>
             </div>
 
-             Statistiques rapides 
+            <!-- Statistiques rapides -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">Cette semaine</h3>
                 <div class="space-y-3">
                     <div class="flex justify-between items-center">
                         <span class="text-sm text-gray-600">Quiz complétés</span>
-                        <span class="font-semibold text-gray-900">0</span>
+                        <span class="font-semibold text-gray-900">{{ weekly_stats.completed_attempts|default:0 }}</span>
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-sm text-gray-600">Moyenne générale</span>
-                        <span class="font-semibold text-green-600">--%</span>
+                        <span class="font-semibold text-green-600">{{ weekly_stats.avg_score|default:"--"|floatformat:0 }}%</span>
                     </div>
                     <div class="flex justify-between items-center">
-                        <span class="text-sm text-gray-600">Temps moyen</span>
-                        <span class="font-semibold text-gray-900">--</span>
+                        <span class="text-sm text-gray-600">Nouveaux élèves</span>
+                        <span class="font-semibold text-gray-900">{{ weekly_stats.new_students|default:0 }}</span>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Added confirmation modals and JavaScript for better UX -->
+<div id="confirmModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 max-w-md mx-4">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Confirmer la publication</h3>
+        <p class="text-gray-600 mb-6">Êtes-vous sûr de vouloir publier ce quiz ? Une fois publié, les élèves pourront y accéder.</p>
+        <div class="flex space-x-4">
+            <button onclick="closeModal()" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+                Annuler
+            </button>
+            <button id="confirmPublishBtn" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                Publier
+            </button>
         </div>
     </div>
 </div>
@@ -227,7 +280,7 @@ tailwind.config = {
     theme: {
         extend: {
             colors: {
-                primary: '#6366f1',
+                primary: '#1e40af',
                 secondary: '#f59e0b',
                 success: '#10b981',
                 danger: '#ef4444',
@@ -236,6 +289,59 @@ tailwind.config = {
             }
         }
     }
+}
+
+let currentQuizId = null;
+
+function confirmPublish(quizId) {
+    currentQuizId = quizId;
+    document.getElementById('confirmModal').classList.remove('hidden');
+    document.getElementById('confirmModal').classList.add('flex');
+}
+
+function closeModal() {
+    document.getElementById('confirmModal').classList.add('hidden');
+    document.getElementById('confirmModal').classList.remove('flex');
+    currentQuizId = null;
+}
+
+document.getElementById('confirmPublishBtn').addEventListener('click', function() {
+    if (currentQuizId) {
+        publishQuiz(currentQuizId);
+    }
+});
+
+function publishQuiz(quizId) {
+    fetch(`/quiz/${quizId}/publish/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload(); // Refresh to show updated status
+        } else {
+            alert('Erreur: ' + data.error);
+        }
+        closeModal();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Une erreur est survenue');
+        closeModal();
+    });
+}
+
+function refreshDashboard() {
+    location.reload();
+}
+
+function showQuizStats(quizId) {
+    // TODO: Implement quiz statistics modal
+    alert('Statistiques du quiz (à implémenter)');
 }
 </script>
 {% endblock %}
