@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from django.utils import timezone
-from django.db.models import Q, Count, Avg
+from django.db.models import Q, Count, Avg, F
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 import json
@@ -14,12 +14,15 @@ from ai_service.gemini_service import GeminiService
 
 def quiz_catalog(request):
     """Affiche le catalogue des quiz avec filtres"""
-    quizzes = Quiz.objects.filter(is_published=True).select_related('subject')
-    subjects = Subject.objects.all()
-    
     if request.user.is_authenticated and hasattr(request.user, 'user_type') and request.user.user_type == 'student':
-        if hasattr(request.user, 'level') and request.user.level:
-            quizzes = quizzes.filter(level=request.user.level)
+        if hasattr(request.user, 'class_name') and request.user.class_name:
+            quizzes = Quiz.objects.filter(is_published=True, level=request.user.class_name).select_related('subject')
+        else:
+            quizzes = Quiz.objects.none()  # No quizzes if no class assigned
+    else:
+        quizzes = Quiz.objects.filter(is_published=True).select_related('subject')
+    
+    subjects = Subject.objects.all()
     
     search = request.GET.get('search')
     if search:
@@ -42,13 +45,23 @@ def quiz_catalog(request):
 
 @login_required
 def quiz_list(request):
-    """Liste des quiz pour les enseignants"""
+    """Liste des quiz pour les enseignants avec participants et scores"""
     if request.user.user_type != 'teacher':
         messages.error(request, "Accès réservé aux enseignants.")
         return redirect('home')
     
-    # Récupérer les quiz de l'enseignant
-    quizzes = Quiz.objects.filter(course__teacher=request.user).select_related('subject', 'course')
+    quizzes = Quiz.objects.filter(course__teacher=request.user).select_related('subject', 'course').prefetch_related('quizattempt_set__user')
+    
+    # Add statistics for each quiz
+    for quiz in quizzes:
+        attempts = QuizAttempt.objects.filter(quiz=quiz, is_completed=True)
+        quiz.total_attempts = attempts.count()
+        quiz.avg_score = attempts.aggregate(avg_score=Avg('score'))['avg_score'] or 0
+        quiz.success_rate = attempts.filter(score__gte=F('total_points') * 0.5).count()
+        if quiz.total_attempts > 0:
+            quiz.success_percentage = (quiz.success_rate / quiz.total_attempts) * 100
+        else:
+            quiz.success_percentage = 0
     
     context = {
         'quizzes': quizzes,
@@ -137,23 +150,49 @@ def submit_quiz(request, quiz_id):
         
         elif question.question_type == 'true_false':
             user_answer = answer_data.get('true_false_answer')
+            print(f"[v0] DEBUG True/False Question {question_id}:")
+            print(f"[v0] User answer received: {user_answer} (type: {type(user_answer)})")
+            
             if user_answer is not None:
-                answer.true_false_answer = user_answer
-                if hasattr(question, 'correct_answer') and str(question.correct_answer).lower() == str(user_answer).lower():
-                    answer.is_correct = True
-                    answer.points_earned = question.points
-                    total_score += question.points
+                # Convert user answer to boolean
+                if isinstance(user_answer, str):
+                    user_bool = user_answer.lower().strip() in ['true', 'vrai', '1', 'oui', 'yes']
                 else:
-                    # Check if question has choices for true/false (alternative approach)
-                    correct_choice = question.choices.filter(is_correct=True).first()
-                    if correct_choice:
-                        # Compare with choice text (True/False)
-                        correct_value = correct_choice.choice_text.lower() == 'true'
-                        if correct_value == user_answer:
-                            answer.is_correct = True
-                            answer.points_earned = question.points
-                            total_score += question.points
-        
+                    user_bool = bool(user_answer)
+                
+                answer.true_false_answer = user_bool
+                print(f"[v0] User boolean answer: {user_bool}")
+                
+                # Find the correct answer
+                correct_choice = question.choices.filter(is_correct=True).first()
+                print(f"[v0] Correct choice found: {correct_choice}")
+                
+                if correct_choice:
+                    correct_text = correct_choice.choice_text.lower().strip()
+                    correct_bool = correct_text in ['true', 'vrai', '1', 'oui', 'yes']
+                    print(f"[v0] Correct choice text: '{correct_text}' -> boolean: {correct_bool}")
+                    
+                    # Compare boolean values
+                    if user_bool == correct_bool:
+                        answer.is_correct = True
+                        answer.points_earned = question.points
+                        total_score += question.points
+                        print(f"[v0] CORRECT! {user_bool} == {correct_bool}")
+                    else:
+                        answer.is_correct = False
+                        answer.points_earned = 0
+                        print(f"[v0] INCORRECT! {user_bool} != {correct_bool}")
+                else:
+                    answer.is_correct = False
+                    answer.points_earned = 0
+                    print(f"[v0] ERROR: No correct choice found for question")
+            else:
+                answer.is_correct = False
+                answer.points_earned = 0
+                print(f"[v0] No answer provided")
+            
+            print(f"[v0] Final result - is_correct: {answer.is_correct}, points: {answer.points_earned}")
+
         answer.save()
     
     # Finaliser la tentative
@@ -488,3 +527,47 @@ def get_quiz_questions(request, quiz_id):
         'success': True,
         'questions': questions_data
     })
+
+@login_required
+def quiz_participants(request, quiz_id):
+    """Voir les participants d'un quiz spécifique et leurs scores"""
+    if request.user.user_type != 'teacher':
+        messages.error(request, "Accès réservé aux enseignants.")
+        return redirect('home')
+    
+    quiz = get_object_or_404(Quiz, id=quiz_id, course__teacher=request.user)
+    
+    attempts = QuizAttempt.objects.filter(
+        quiz=quiz, 
+        is_completed=True
+    ).select_related('user').order_by('-completed_at')
+    
+    # Calculate statistics
+    total_attempts = attempts.count()
+    if total_attempts > 0:
+        avg_score = attempts.aggregate(avg_score=Avg('score'))['avg_score'] or 0
+        success_count = attempts.filter(score__gte=F('total_points') * 0.5).count()
+        success_rate = (success_count / total_attempts) * 100
+    else:
+        avg_score = 0
+        success_rate = 0
+        success_count = 0
+    
+    # Add percentage and status to each attempt
+    for attempt in attempts:
+        if attempt.total_points > 0:
+            attempt.percentage = (attempt.score / attempt.total_points) * 100
+            attempt.is_passing = attempt.percentage >= 50
+        else:
+            attempt.percentage = 0
+            attempt.is_passing = False
+    
+    context = {
+        'quiz': quiz,
+        'attempts': attempts,
+        'total_attempts': total_attempts,
+        'avg_score': round(avg_score, 1),
+        'success_rate': round(success_rate, 1),
+        'success_count': success_count,
+    }
+    return render(request, 'teacher/quiz_participants.html', context)
