@@ -1,5 +1,5 @@
 from django import forms
-from .models import Course, Quiz, Question, Choice
+from .models import Course, Quiz, Question, Choice, Subject
 
 class CourseUploadForm(forms.ModelForm):
     class Meta:
@@ -34,6 +34,11 @@ class CourseUploadForm(forms.ModelForm):
                 'accept': '.pdf'
             }),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['subject'].queryset = Subject.objects.all()
+        self.fields['subject'].empty_label = "Sélectionnez une matière"
 
 class QuizForm(forms.ModelForm):
     class Meta:
