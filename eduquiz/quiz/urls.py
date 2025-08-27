@@ -13,6 +13,7 @@ urlpatterns = [
     path('create/', views.create_quiz, name='create_quiz'),
     path('create-from-course/<int:course_id>/', views.create_quiz_from_course, name='create_quiz_from_course'),
     path('edit/<int:quiz_id>/', views.edit_quiz, name='edit_quiz'),
+    path('participants/<int:quiz_id>/', views.quiz_participants, name='quiz_participants'),
     
     # URLs pour l'IA
     path('generate-suggestions/<int:quiz_id>/', views.generate_ai_suggestions, name='generate_ai_suggestions'),
