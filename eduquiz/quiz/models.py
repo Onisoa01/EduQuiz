@@ -107,6 +107,7 @@ class Answer(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     selected_choice = models.ForeignKey(Choice, on_delete=models.CASCADE, null=True, blank=True)
     open_answer = models.TextField(blank=True)  # Pour les questions ouvertes
+    true_false_answer = models.BooleanField(null=True, blank=True)  # Pour les questions vrai/faux
     is_correct = models.BooleanField(default=False)
     points_earned = models.IntegerField(default=0)
     
