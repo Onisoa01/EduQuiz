@@ -87,13 +87,13 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Score</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pourcentage</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Temps</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Temps de completion</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     {% for attempt in attempts %}
-                    <tr class="hover:bg-gray-50">
+                    <tr class="hover:bg-gray-50 {% if not attempt.is_passing %}bg-red-50{% endif %}">
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center">
                                 <img class="h-8 w-8 rounded-full" src="https://ui-avatars.com/api/?name={{ attempt.user.first_name }}+{{ attempt.user.last_name }}&background=1e3a8a&color=fff" alt="Avatar">
@@ -130,9 +130,15 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {% if attempt.time_taken %}
-                                {{ attempt.time_taken|date:"i:s" }} min
+                                <div class="flex items-center">
+                                    <i class="fas fa-clock text-gray-400 mr-2"></i>
+                                    {{ attempt.time_taken_display }}
+                                </div>
                             {% else %}
-                                --
+                                <span class="text-gray-400 flex items-center">
+                                    <i class="fas fa-question-circle mr-2"></i>
+                                    Non disponible
+                                </span>
                             {% endif %}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
