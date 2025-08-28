@@ -82,15 +82,12 @@
                             <a href="{% url 'edit_quiz' quiz.id %}" class="p-2 text-gray-400 hover:text-primary" title="Modifier">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <!-- Added link to view quiz participants and their scores -->
+                            <!-- Changed statistics button to participants button and removed duplicate participants button -->
                             {% if quiz.is_published and quiz.total_attempts > 0 %}
-                            <a href="{% url 'quiz_participants' quiz.id %}" class="p-2 text-gray-400 hover:text-green-600" title="Voir les participants">
+                            <a href="{% url 'quiz_participants' quiz.id %}" class="p-2 text-gray-400 hover:text-blue-600" title="Voir les participants">
                                 <i class="fas fa-users"></i>
                             </a>
                             {% endif %}
-                            <button class="p-2 text-gray-400 hover:text-blue-600" title="Statistiques">
-                                <i class="fas fa-chart-bar"></i>
-                            </button>
                             <button class="p-2 text-gray-400 hover:text-red-600" title="Supprimer">
                                 <i class="fas fa-trash"></i>
                             </button>
