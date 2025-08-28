@@ -4,27 +4,31 @@
 
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" x-data="quizEditor()">
-    <!-- Header -->
+    <!-- Enhanced header with better visual hierarchy -->
     <div class="mb-8">
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-4">
-                <a href="{% url 'quiz_list' %}" class="text-gray-500 hover:text-primary">
-                    <i class="fas fa-arrow-left"></i>
+                <a href="{% url 'quiz_list' %}" class="text-gray-500 hover:text-primary transition-colors">
+                    <i class="fas fa-arrow-left text-xl"></i>
                 </a>
                 <div>
                     <h1 class="text-3xl font-bold text-gray-900">{{ quiz.title }}</h1>
-                    <p class="text-gray-600 mt-1">{{ quiz.subject.name }} • {{ quiz.level }} • Basé sur "{{ course.title }}"</p>
+                    <div class="flex items-center space-x-4 mt-2 text-sm text-gray-600">
+                        <span><i class="fas fa-book mr-1 text-primary"></i>{{ quiz.subject.name }}</span>
+                        <span><i class="fas fa-layer-group mr-1 text-primary"></i>{{ quiz.level }}</span>
+                        <span><i class="fas fa-file-pdf mr-1 text-red-600"></i>{{ course.title }}</span>
+                    </div>
                 </div>
             </div>
             <div class="flex space-x-4">
                 {% if not quiz.is_published %}
                     <button @click="publishQuiz()" 
                             :disabled="questions.length === 0"
-                            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                            class="flex items-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl">
                         <i class="fas fa-globe mr-2"></i>Publier le quiz
                     </button>
                 {% else %}
-                    <span class="px-4 py-2 bg-green-100 text-green-800 rounded-lg">
+                    <span class="flex items-center px-6 py-3 bg-green-100 text-green-800 rounded-lg border border-green-200">
                         <i class="fas fa-check-circle mr-2"></i>Quiz publié
                     </span>
                 {% endif %}
@@ -35,23 +39,29 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- Panel principal -->
         <div class="lg:col-span-2 space-y-8">
-            <!-- Génération IA -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <!-- Enhanced AI generation section with better UX -->
+            <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
                 <div class="flex items-center justify-between mb-6">
                     <div>
-                        <h2 class="text-xl font-bold text-gray-900">Génération automatique avec IA</h2>
-                        <p class="text-gray-600 mt-1">Utilisez Gemini 2.0 Flash pour analyser votre PDF et générer des questions</p>
+                        <h2 class="text-xl font-bold text-gray-900 flex items-center">
+                            <i class="fas fa-robot text-primary mr-3 text-2xl"></i>
+                            Génération automatique avec IA
+                        </h2>
+                        <p class="text-gray-600 mt-1">Utilisez Gemini 2.0 Flash pour analyser votre PDF et générer des questions intelligentes</p>
                     </div>
                     <div class="flex items-center space-x-4">
-                        <select x-model="numQuestions" class="px-3 py-2 border border-gray-300 rounded-lg">
-                            <option value="10">10 questions</option>
-                            <option value="15">15 questions</option>
-                            <option value="20">20 questions</option>
-                            <option value="25">25 questions</option>
-                        </select>
+                        <div class="flex items-center space-x-2">
+                            <label class="text-sm font-medium text-gray-700">Questions :</label>
+                            <select x-model="numQuestions" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                                <option value="10">10 questions</option>
+                                <option value="15">15 questions</option>
+                                <option value="20">20 questions</option>
+                                <option value="25">25 questions</option>
+                            </select>
+                        </div>
                         <button @click="generateSuggestions()" 
                                 :disabled="isGenerating"
-                                class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50">
+                                class="flex items-center px-6 py-2 bg-gradient-to-r from-primary to-blue-600 text-white rounded-lg hover:from-primary/90 hover:to-blue-600/90 transition-all duration-200 disabled:opacity-50 shadow-lg hover:shadow-xl">
                             <i class="fas fa-magic mr-2" :class="{'fa-spin': isGenerating}"></i>
                             <span x-text="isGenerating ? 'Génération...' : 'Générer avec IA'"></span>
                         </button>
@@ -128,10 +138,18 @@
             </div>
 
             <!-- Questions actuelles -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
                 <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-xl font-bold text-gray-900">Questions du quiz</h2>
-                    <span class="text-sm text-gray-600" x-text="`${questions.length} question(s)`"></span>
+                    <h2 class="text-xl font-bold text-gray-900 flex items-center">
+                        <i class="fas fa-list-alt text-primary mr-3"></i>
+                        Questions du quiz
+                    </h2>
+                    <div class="flex items-center space-x-4">
+                        <span class="text-sm text-gray-600" x-text="`${questions.length} question(s)`"></span>
+                        <!-- Show total points calculation -->
+                        <span class="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full font-medium" 
+                              x-text="`Total: ${questions.reduce((sum, q) => sum + (q.points || 0), 0)} pts`"></span>
+                    </div>
                 </div>
 
                 <div x-show="questions.length === 0" class="text-center py-8">
@@ -169,7 +187,7 @@
                                 </div>
                                 
                                 <div class="flex space-x-2 ml-4">
-                                    <button @click="editQuestion(index)" class="p-2 text-gray-400 hover:text-primary">
+                                    <button @click="editQuestion(index)" class="p-2 text-gray-400 hover:text-primary" title="Modifier la question">
                                         <i class="fas fa-edit"></i>
                                     </button>
                                     <button @click="removeQuestion(index)" class="p-2 text-gray-400 hover:text-red-600">
@@ -193,43 +211,54 @@
             </div>
         </div>
 
-        <!-- Sidebar -->
+        <!-- Enhanced sidebar with better information display -->
         <div class="space-y-6">
             <!-- Informations du quiz -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">Informations du quiz</h3>
+            <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-info-circle text-primary mr-2"></i>
+                    Informations du quiz
+                </h3>
                 <div class="space-y-3 text-sm">
-                    <div class="flex justify-between">
+                    <div class="flex justify-between items-center">
                         <span class="text-gray-600">Matière:</span>
-                        <span class="font-medium">{{ quiz.subject.name }}</span>
+                        <span class="font-medium text-primary">{{ quiz.subject.name }}</span>
                     </div>
-                    <div class="flex justify-between">
+                    <div class="flex justify-between items-center">
                         <span class="text-gray-600">Niveau:</span>
                         <span class="font-medium">{{ quiz.level }}</span>
                     </div>
-                    <div class="flex justify-between">
+                    <div class="flex justify-between items-center">
                         <span class="text-gray-600">Difficulté:</span>
-                        <span class="font-medium">{{ quiz.get_difficulty_display }}</span>
+                        <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">{{ quiz.get_difficulty_display }}</span>
                     </div>
-                    <div class="flex justify-between">
+                    <div class="flex justify-between items-center">
                         <span class="text-gray-600">Temps limite:</span>
-                        <span class="font-medium">{{ quiz.time_limit }} min</span>
+                        <span class="font-medium flex items-center">
+                            <i class="fas fa-clock text-gray-400 mr-1"></i>
+                            {{ quiz.time_limit }} min
+                        </span>
                     </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Points:</span>
-                        <span class="font-medium">{{ quiz.points_reward }} pts</span>
+                    <!-- Dynamic points display -->
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Points totaux:</span>
+                        <span class="font-medium text-green-600" x-text="`${questions.reduce((sum, q) => sum + (q.points || 0), 0)} pts`"></span>
                     </div>
-                    <div class="flex justify-between">
+                    <div class="flex justify-between items-center">
                         <span class="text-gray-600">Statut:</span>
-                        <span class="font-medium {% if quiz.is_published %}text-green-600{% else %}text-yellow-600{% endif %}">
-                            {% if quiz.is_published %}Publié{% else %}Brouillon{% endif %}
+                        <span class="px-2 py-1 rounded-full text-xs font-medium {% if quiz.is_published %}bg-green-100 text-green-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                            {% if quiz.is_published %}
+                                <i class="fas fa-check-circle mr-1"></i>Publié
+                            {% else %}
+                                <i class="fas fa-edit mr-1"></i>Brouillon
+                            {% endif %}
                         </span>
                     </div>
                 </div>
             </div>
 
             <!-- Support de cours -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">Support de cours</h3>
                 <div class="flex items-center space-x-3">
                     <i class="fas fa-file-pdf text-red-600 text-2xl"></i>
@@ -329,8 +358,23 @@ function quizEditor() {
         },
         
         editQuestion(index) {
-            // TODO: Implémenter l'édition de question
-            alert('Fonctionnalité d\'édition à venir');
+            const question = this.questions[index];
+            const newText = prompt('Modifier le texte de la question:', question.question_text);
+            if (newText && newText.trim()) {
+                this.questions[index].question_text = newText.trim();
+            }
+            
+            // Allow editing points
+            const newPoints = prompt('Modifier les points (1-20):', question.points);
+            if (newPoints && !isNaN(newPoints) && newPoints >= 1 && newPoints <= 20) {
+                this.questions[index].points = parseInt(newPoints);
+            }
+            
+            // Allow editing explanation
+            const newExplanation = prompt('Modifier l\'explication (optionnel):', question.explanation || '');
+            if (newExplanation !== null) {
+                this.questions[index].explanation = newExplanation.trim();
+            }
         },
         
         async saveQuestions() {
