@@ -36,51 +36,94 @@
     </div>
 
     <!-- Formulaire de création du quiz -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-        <h2 class="text-xl font-bold text-gray-900 mb-6">Configuration du Quiz</h2>
+    <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-8">
+        <!-- Enhanced dialog-style header with better visual hierarchy -->
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Configuration du Quiz</h2>
+                <p class="text-gray-600 mt-1">Définissez les paramètres de votre quiz intelligent</p>
+            </div>
+            <div class="flex items-center space-x-2 text-sm text-gray-500">
+                <i class="fas fa-robot text-primary"></i>
+                <span>Assisté par IA</span>
+            </div>
+        </div>
         
-        <form method="post" class="space-y-6">
+        <form method="post" class="space-y-8">
             {% csrf_token %}
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Titre du quiz</label>
-                    {{ form.title }}
+            <!-- Improved form layout with better visual grouping -->
+            <div class="bg-gray-50 rounded-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Informations générales</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-heading mr-2 text-primary"></i>Titre du quiz
+                        </label>
+                        {{ form.title }}
+                    </div>
+
+                    <div>
+                        <label for="{{ form.difficulty.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-chart-line mr-2 text-primary"></i>Niveau de difficulté
+                        </label>
+                        {{ form.difficulty }}
+                    </div>
                 </div>
 
-                <div>
-                    <label for="{{ form.difficulty.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Niveau de difficulté</label>
-                    {{ form.difficulty }}
-                </div>
-            </div>
-
-            <div>
-                <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                {{ form.description }}
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label for="{{ form.time_limit.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Temps limite (minutes)</label>
-                    {{ form.time_limit }}
-                </div>
-
-                <div>
-                    <label for="{{ form.points_reward.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Points de récompense</label>
-                    {{ form.points_reward }}
+                <div class="mt-6">
+                    <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-align-left mr-2 text-primary"></i>Description
+                    </label>
+                    {{ form.description }}
                 </div>
             </div>
 
-            <!-- Actions -->
+            <div class="bg-blue-50 rounded-lg p-6 border border-blue-200">
+                <h3 class="text-lg font-semibold text-blue-900 mb-4">
+                    <i class="fas fa-cogs mr-2"></i>Paramètres avancés
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="{{ form.time_limit.id_for_label }}" class="block text-sm font-medium text-blue-800 mb-2">
+                            <i class="fas fa-clock mr-2"></i>Temps limite (minutes)
+                        </label>
+                        {{ form.time_limit }}
+                        <p class="text-xs text-blue-600 mt-1">Temps recommandé : 1-2 minutes par question</p>
+                    </div>
+
+                    <!-- Enhanced AI points section with better visual design -->
+                    <div>
+                        <div class="bg-white border border-blue-300 rounded-lg p-4">
+                            <div class="flex items-center mb-2">
+                                <i class="fas fa-robot text-blue-600 mr-2 text-lg"></i>
+                                <div>
+                                    <p class="text-sm font-semibold text-blue-900">Points automatiques</p>
+                                    <p class="text-xs text-blue-700">L'IA calculera les points selon :</p>
+                                </div>
+                            </div>
+                            <ul class="text-xs text-blue-600 space-y-1 ml-6">
+                                <li>• Difficulté sélectionnée</li>
+                                <li>• Temps alloué</li>
+                                <li>• Complexité des questions</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enhanced action buttons with better styling -->
             <div class="flex items-center justify-between pt-6 border-t border-gray-200">
                 <a href="{% url 'teacher_dashboard' %}" 
-                   class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                   class="flex items-center px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all duration-200 font-medium">
+                    <i class="fas fa-arrow-left mr-2"></i>
                     Annuler
                 </a>
                 <button type="submit" 
-                        class="px-8 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium">
-                    <i class="fas fa-arrow-right mr-2"></i>
-                    Créer le quiz et configurer les questions
+                        class="flex items-center px-8 py-3 bg-gradient-to-r from-primary to-blue-600 text-white rounded-lg hover:from-primary/90 hover:to-blue-600/90 transition-all duration-200 font-medium shadow-lg hover:shadow-xl">
+                    <i class="fas fa-magic mr-2"></i>
+                    Créer le quiz avec IA
+                    <i class="fas fa-arrow-right ml-2"></i>
                 </button>
             </div>
         </form>
