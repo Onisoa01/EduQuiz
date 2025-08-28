@@ -4,10 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}EduQuiz - Lycée Saint Famille{% endblock %}</title>
-    <!-- Added cache control headers to prevent navigation caching issues -->
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <!-- Enhanced cache control headers to prevent navigation caching issues -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
+    <meta http-equiv="Last-Modified" content="0">
+    <meta http-equiv="If-Modified-Since" content="0">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -44,8 +46,8 @@
 </head>
 <body class="bg-gray-50 min-h-screen">
     {% block navbar %}
-    <!-- Updated navbar with navy blue theme and Lycée Saint Famille branding -->
-    <nav class="bg-navy-900 shadow-lg border-b border-navy-800">
+    <!-- Added authentication validation and improved cache control -->
+    <nav class="bg-navy-900 shadow-lg border-b border-navy-800" id="mainNavbar">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
@@ -54,9 +56,9 @@
                             <i class="fas fa-graduation-cap mr-2"></i>Lycée Saint Famille
                         </a>
                     </div>
-                    <!-- Enhanced navigation menu for quiz catalog -->
-                    {% if user.is_authenticated %}
-                    <div class="hidden md:block ml-10">
+                    <!-- Enhanced navigation menu with better authentication checks -->
+                    {% if user.is_authenticated and user.is_active %}
+                    <div class="hidden md:block ml-10" id="authenticatedNav">
                         <div class="flex items-baseline space-x-4">
                             {% if user.user_type == 'teacher' %}
                                 <a href="{% url 'teacher_dashboard' %}" class="text-gray-200 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
@@ -82,23 +84,25 @@
                 </div>
                 
                 <div class="flex items-center space-x-4">
-                    {% if user.is_authenticated %}
-                        <!-- Afficher seulement si l'utilisateur est connecté -->
-                        <div class="flex items-center space-x-2">
+                    <!-- Improved authentication state display with better validation -->
+                    {% if user.is_authenticated and user.is_active %}
+                        <!-- Only show points for students, not teachers -->
+                        {% if user.user_type != 'teacher' %}
+                        <div class="flex items-center space-x-2" id="userInfo">
                             <i class="fas fa-coins text-yellow-400"></i>
-                            <span class="text-sm font-medium text-white">{{ user.points }} pts</span>
+                            <span class="text-sm font-medium text-white">{{ user.points|default:0 }} pts</span>
                         </div>
-                        <div class="relative" x-data="{ open: false }">
+                        {% endif %}
+                        <div class="relative" x-data="{ open: false }" id="userDropdown">
                             <button @click="open = !open" class="flex items-center space-x-2 text-gray-200 hover:text-white">
-                                <img class="h-8 w-8 rounded-full" src="https://ui-avatars.com/api/?name={{ user.first_name }}+{{ user.last_name }}&background=1e3a8a&color=fff" alt="Avatar">
-                                <span class="text-sm font-medium">{{ user.first_name }}</span>
+                                <img class="h-8 w-8 rounded-full" src="https://ui-avatars.com/api/?name={{ user.first_name|default:'User' }}+{{ user.last_name|default:'' }}&background=1e3a8a&color=fff" alt="Avatar">
+                                <span class="text-sm font-medium">{{ user.first_name|default:'Utilisateur' }}</span>
                                 <i class="fas fa-chevron-down text-xs"></i>
                             </button>
                             <div x-show="open" @click.away="open = false" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
                                 <a href="{% url 'profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-navy-50">
                                     <i class="fas fa-user mr-2 text-navy-600"></i>Profil
                                 </a>
-                                <!-- Enhanced dropdown menu with role-specific links -->
                                 {% if user.user_type == 'teacher' %}
                                     <a href="{% url 'teacher_dashboard' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-navy-50">
                                         <i class="fas fa-chalkboard-teacher mr-2 text-navy-600"></i>Tableau de bord
@@ -117,15 +121,18 @@
                                         <i class="fas fa-user-graduate mr-2 text-navy-600"></i>Tableau de bord
                                     </a>
                                 {% endif %}
-                                <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-red-50">
+                                <!-- Enhanced logout with better cache clearing -->
+                                <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-red-50" onclick="handleLogout(event)">
                                     <i class="fas fa-sign-out-alt mr-2 text-red-600"></i>Déconnexion
                                 </a>
                             </div>
                         </div>
                     {% else %}
-                        <!-- Afficher seulement si l'utilisateur n'est pas connecté -->
-                        <a href="{% url 'login' %}" class="text-gray-200 hover:text-white px-3 py-2 text-sm font-medium">Connexion</a>
-                        <a href="{% url 'register' %}" class="bg-white text-navy-900 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors">Inscription</a>
+                        <!-- Show login/register only for unauthenticated users -->
+                        <div id="guestNav">
+                            <a href="{% url 'login' %}" class="text-gray-200 hover:text-white px-3 py-2 text-sm font-medium">Connexion</a>
+                            <a href="{% url 'register' %}" class="bg-white text-navy-900 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors">Inscription</a>
+                        </div>
                     {% endif %}
                 </div>
             </div>
@@ -138,25 +145,102 @@
     </main>
 
     {% block scripts %}
-    <!-- Clear cache when user logs out -->
+    <!-- Enhanced cache clearing and authentication validation -->
     <script>
+        // Enhanced logout function with comprehensive cache clearing
+        function handleLogout(event) {
+            event.preventDefault();
+            
+            // Clear all possible caches
+            if ('caches' in window) {
+                caches.keys().then(names => {
+                    names.forEach(name => {
+                        caches.delete(name);
+                    });
+                });
+            }
+            
+            // Clear all storage
+            try {
+                sessionStorage.clear();
+                localStorage.clear();
+            } catch (e) {
+                console.log('Storage clearing failed:', e);
+            }
+            
+            // Clear cookies related to authentication
+            document.cookie.split(";").forEach(function(c) { 
+                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+            });
+            
+            // Force page reload after logout
+            window.location.href = event.target.href;
+            
+            // Prevent browser back button from showing cached authenticated state
+            setTimeout(() => {
+                window.location.replace(window.location.href);
+            }, 100);
+        }
+        
+        // Validate authentication state on page load
         document.addEventListener('DOMContentLoaded', function() {
-            const logoutLinks = document.querySelectorAll('a[href*="logout"]');
-            logoutLinks.forEach(link => {
-                link.addEventListener('click', function() {
-                    // Clear browser cache
-                    if ('caches' in window) {
-                        caches.keys().then(names => {
-                            names.forEach(name => {
-                                caches.delete(name);
-                            });
-                        });
+            // Check if user elements exist but shouldn't
+            const userInfo = document.getElementById('userInfo');
+            const userDropdown = document.getElementById('userDropdown');
+            const authenticatedNav = document.getElementById('authenticatedNav');
+            const guestNav = document.getElementById('guestNav');
+            
+            // Force reload if authentication state seems inconsistent
+            const hasUserElements = userInfo || userDropdown || authenticatedNav;
+            const hasGuestElements = guestNav;
+            
+            // If we have both authenticated and guest elements, something is wrong
+            if (hasUserElements && hasGuestElements) {
+                console.log('[v0] Authentication state inconsistent, forcing reload');
+                window.location.reload(true);
+            }
+            
+            // Add cache-busting to all navigation links
+            const navLinks = document.querySelectorAll('nav a');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    if (this.href.includes('logout')) {
+                        handleLogout(e);
+                    } else {
+                        // Add timestamp to prevent caching
+                        const url = new URL(this.href);
+                        url.searchParams.set('_t', Date.now());
+                        this.href = url.toString();
                     }
-                    // Clear session storage
-                    sessionStorage.clear();
                 });
             });
+            
+            // Prevent back button from showing cached authenticated state
+            window.addEventListener('pageshow', function(event) {
+                if (event.persisted) {
+                    window.location.reload(true);
+                }
+            });
         });
+        
+        // Additional security: validate session periodically
+        setInterval(function() {
+            // Only check if we think user is authenticated
+            if (document.getElementById('userInfo')) {
+                fetch('/api/validate-session/', {
+                    method: 'GET',
+                    credentials: 'same-origin',
+                    cache: 'no-cache'
+                }).then(response => {
+                    if (!response.ok || response.status === 401) {
+                        console.log('[v0] Session invalid, redirecting to login');
+                        window.location.href = '/login/';
+                    }
+                }).catch(error => {
+                    console.log('[v0] Session validation failed:', error);
+                });
+            }
+        }, 300000); // Check every 5 minutes
     </script>
     {% endblock %}
 </body>
