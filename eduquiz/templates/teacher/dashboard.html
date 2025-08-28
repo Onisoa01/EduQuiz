@@ -138,9 +138,9 @@
                                     <i class="fas fa-edit"></i>
                                 </a>
                                 {% if quiz.is_published %}
-                                <button onclick="showQuizStats({{ quiz.id }})" class="p-2 text-gray-400 hover:text-green-600" title="Statistiques">
-                                    <i class="fas fa-chart-bar"></i>
-                                </button>
+                                <a href="{% url 'quiz_participants' quiz.id %}" class="p-2 text-gray-400 hover:text-green-600" title="Voir les participants">
+                                    <i class="fas fa-users"></i>
+                                </a>
                                 {% else %}
                                 <button onclick="confirmPublish({{ quiz.id }})" class="p-2 text-gray-400 hover:text-blue-600" title="Publier">
                                     <i class="fas fa-paper-plane"></i>
@@ -163,18 +163,40 @@
 
             <!-- Activité récente -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h2 class="text-xl font-bold text-gray-900 mb-6">Activité récente</h2>
-                <div class="space-y-4">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold text-gray-900">Activité récente</h2>
+                    <!-- Added pagination controls for recent activity -->
+                    {% if recent_attempts.has_other_pages %}
+                    <div class="flex items-center space-x-2">
+                        {% if recent_attempts.has_previous %}
+                            <a href="?page={{ recent_attempts.previous_page_number }}" class="px-3 py-1 text-sm text-gray-600 hover:text-primary border border-gray-300 rounded">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        {% endif %}
+                        <span class="text-sm text-gray-600">
+                            Page {{ recent_attempts.number }} sur {{ recent_attempts.paginator.num_pages }}
+                        </span>
+                        {% if recent_attempts.has_next %}
+                            <a href="?page={{ recent_attempts.next_page_number }}" class="px-3 py-1 text-sm text-gray-600 hover:text-primary border border-gray-300 rounded">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                <!-- Limited activity display with pagination -->
+                <div class="space-y-4 max-h-96 overflow-y-auto">
                     {% for attempt in recent_attempts %}
-                    <div class="flex items-center p-4 bg-green-50 rounded-lg border border-green-200">
-                        <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
-                            <i class="fas fa-check text-white"></i>
+                    <!-- Added red background for failed attempts (below 50%) -->
+                    <div class="flex items-center p-4 {% if attempt.percentage_score >= 50 %}bg-green-50 border-green-200{% else %}bg-red-50 border-red-200{% endif %} rounded-lg border">
+                        <div class="w-10 h-10 {% if attempt.percentage_score >= 50 %}bg-green-500{% else %}bg-red-500{% endif %} rounded-full flex items-center justify-center">
+                            <i class="fas {% if attempt.percentage_score >= 50 %}fa-check{% else %}fa-times{% endif %} text-white"></i>
                         </div>
                         <div class="ml-4 flex-1">
                             <p class="font-semibold text-gray-900">{{ attempt.user.get_full_name }} a terminé un quiz</p>
                             <p class="text-sm text-gray-600">{{ attempt.quiz.title }} • {{ attempt.completed_at|timesince }}</p>
                         </div>
-                        <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">{{ attempt.percentage_score }}%</span>
+                        <span class="text-xs {% if attempt.percentage_score >= 50 %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %} px-2 py-1 rounded-full">{{ attempt.percentage_score|floatformat:0 }}%</span>
                     </div>
                     {% empty %}
                     <div class="text-center py-8">
@@ -183,6 +205,14 @@
                     </div>
                     {% endfor %}
                 </div>
+                <!-- Added "Show more" link if there are more activities -->
+                {% if recent_attempts.has_next %}
+                <div class="mt-4 text-center">
+                    <a href="?page={{ recent_attempts.next_page_number }}" class="text-primary hover:text-primary/80 text-sm font-medium">
+                        Voir plus d'activités <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+                {% endif %}
             </div>
         </div>
 
@@ -339,9 +369,9 @@ function refreshDashboard() {
     location.reload();
 }
 
-function showQuizStats(quizId) {
-    // TODO: Implement quiz statistics modal
-    alert('Statistiques du quiz (à implémenter)');
-}
+// function showQuizStats(quizId) {
+//     // Removed unused function since we now redirect to participants page
+//     // This function is no longer needed
+// }
 </script>
 {% endblock %}
