@@ -43,7 +43,7 @@ class CourseUploadForm(forms.ModelForm):
 class QuizForm(forms.ModelForm):
     class Meta:
         model = Quiz
-        fields = ['title', 'description', 'difficulty', 'time_limit', 'points_reward']
+        fields = ['title', 'description', 'difficulty', 'time_limit']
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary'
@@ -59,11 +59,6 @@ class QuizForm(forms.ModelForm):
                 'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary',
                 'min': 1,
                 'max': 120
-            }),
-            'points_reward': forms.NumberInput(attrs={
-                'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary',
-                'min': 10,
-                'max': 200
             }),
         }
 
