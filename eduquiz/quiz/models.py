@@ -50,12 +50,16 @@ class Quiz(models.Model):
     @property
     def total_questions(self):
         return self.questions.count()
+    
+    @property
+    def total_points_from_questions(self):
+        """Calculate total points as sum of all question points"""
+        return sum(question.points for question in self.questions.all())
 
 class Question(models.Model):
     QUESTION_TYPES = [
         ('mcq', 'QCM'),
         ('open', 'Question ouverte'),
-        ('true_false', 'Vrai/Faux'),
     ]
     
     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='questions')
@@ -107,7 +111,6 @@ class Answer(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     selected_choice = models.ForeignKey(Choice, on_delete=models.CASCADE, null=True, blank=True)
     open_answer = models.TextField(blank=True)  # Pour les questions ouvertes
-    true_false_answer = models.BooleanField(null=True, blank=True)  # Pour les questions vrai/faux
     is_correct = models.BooleanField(default=False)
     points_earned = models.IntegerField(default=0)
     
