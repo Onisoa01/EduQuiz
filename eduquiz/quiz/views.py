@@ -148,51 +148,6 @@ def submit_quiz(request, quiz_id):
             answer.points_earned = question.points
             total_score += question.points
         
-        elif question.question_type == 'true_false':
-            user_answer = answer_data.get('true_false_answer')
-            print(f"[v0] DEBUG True/False Question {question_id}:")
-            print(f"[v0] User answer received: {user_answer} (type: {type(user_answer)})")
-            
-            if user_answer is not None:
-                # Convert user answer to boolean
-                if isinstance(user_answer, str):
-                    user_bool = user_answer.lower().strip() in ['true', 'vrai', '1', 'oui', 'yes']
-                else:
-                    user_bool = bool(user_answer)
-                
-                answer.true_false_answer = user_bool
-                print(f"[v0] User boolean answer: {user_bool}")
-                
-                # Find the correct answer
-                correct_choice = question.choices.filter(is_correct=True).first()
-                print(f"[v0] Correct choice found: {correct_choice}")
-                
-                if correct_choice:
-                    correct_text = correct_choice.choice_text.lower().strip()
-                    correct_bool = correct_text in ['true', 'vrai', '1', 'oui', 'yes']
-                    print(f"[v0] Correct choice text: '{correct_text}' -> boolean: {correct_bool}")
-                    
-                    # Compare boolean values
-                    if user_bool == correct_bool:
-                        answer.is_correct = True
-                        answer.points_earned = question.points
-                        total_score += question.points
-                        print(f"[v0] CORRECT! {user_bool} == {correct_bool}")
-                    else:
-                        answer.is_correct = False
-                        answer.points_earned = 0
-                        print(f"[v0] INCORRECT! {user_bool} != {correct_bool}")
-                else:
-                    answer.is_correct = False
-                    answer.points_earned = 0
-                    print(f"[v0] ERROR: No correct choice found for question")
-            else:
-                answer.is_correct = False
-                answer.points_earned = 0
-                print(f"[v0] No answer provided")
-            
-            print(f"[v0] Final result - is_correct: {answer.is_correct}, points: {answer.points_earned}")
-
         answer.save()
     
     # Finaliser la tentative
@@ -303,9 +258,26 @@ def create_quiz_from_course(request, course_id):
             quiz.course = course
             quiz.subject = course.subject
             quiz.level = course.level
+            
+            try:
+                gemini_service = GeminiService()
+                
+                suggested_points = gemini_service.suggest_quiz_points(
+                    difficulty=quiz.difficulty,
+                    time_limit=quiz.time_limit,
+                    subject=course.subject.name
+                )
+                
+                quiz.points_reward = suggested_points
+            except Exception as e:
+                # Fallback to default points calculation
+                difficulty_multiplier = {'easy': 1, 'medium': 1.5, 'hard': 2}
+                base_points = max(20, quiz.time_limit)
+                quiz.points_reward = int(base_points * difficulty_multiplier.get(quiz.difficulty, 1))
+            
             quiz.save()
             
-            messages.success(request, "Quiz créé avec succès! Vous pouvez maintenant utiliser l'IA pour générer des questions.")
+            messages.success(request, f"Quiz créé avec succès! Points suggérés: {quiz.points_reward} (modifiable)")
             return redirect('edit_quiz', quiz_id=quiz.id)
     else:
         # Pré-remplir le formulaire avec les données du cours
@@ -320,51 +292,6 @@ def create_quiz_from_course(request, course_id):
         'course': course,
     }
     return render(request, 'teacher/create_quiz_from_course.html', context)
-
-@login_required
-def edit_quiz(request, quiz_id):
-    """Édition d'un quiz et de ses questions avec suggestions IA"""
-    if request.user.user_type != 'teacher':
-        messages.error(request, "Accès réservé aux enseignants.")
-        return redirect('home')
-    
-    quiz = get_object_or_404(Quiz, id=quiz_id, course__teacher=request.user)
-    
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            action = data.get('action')
-            
-            if action == 'update_quiz':
-                # Update quiz basic info
-                quiz.title = data.get('title', quiz.title)
-                quiz.description = data.get('description', quiz.description)
-                quiz.time_limit = data.get('time_limit', quiz.time_limit)
-                quiz.save()
-                
-                return JsonResponse({'success': True, 'message': 'Quiz mis à jour avec succès'})
-                
-            elif action == 'save_questions':
-                # Save questions (existing functionality)
-                return save_quiz_questions(request, quiz_id)
-                
-            elif action == 'publish':
-                # Publish quiz (existing functionality)
-                return publish_quiz(request, quiz_id)
-                
-        except json.JSONDecodeError:
-            return JsonResponse({'success': False, 'error': 'Données JSON invalides'})
-        except Exception as e:
-            return JsonResponse({'success': False, 'error': str(e)})
-    
-    questions = quiz.questions.prefetch_related('choices').all()
-    
-    context = {
-        'quiz': quiz,
-        'questions': questions,
-        'course': quiz.course,
-    }
-    return render(request, 'teacher/edit_quiz.html', context)
 
 @login_required
 @require_http_methods(["POST"])
@@ -432,6 +359,8 @@ def save_quiz_questions(request, quiz_id):
         # Supprimer les anciennes questions
         quiz.questions.all().delete()
         
+        total_points = 0
+        
         # Créer les nouvelles questions
         for i, question_data in enumerate(questions_data):
             question = Question.objects.create(
@@ -443,6 +372,8 @@ def save_quiz_questions(request, quiz_id):
                 order=i + 1
             )
             
+            total_points += question.points
+            
             # Créer les choix pour les QCM
             if question_data['question_type'] == 'mcq' and 'choices' in question_data:
                 for j, choice_data in enumerate(question_data['choices']):
@@ -453,7 +384,14 @@ def save_quiz_questions(request, quiz_id):
                         order=j + 1
                     )
         
-        return JsonResponse({'success': True})
+        quiz.points_reward = total_points
+        quiz.save()
+        
+        return JsonResponse({
+            'success': True,
+            'total_points': total_points,
+            'message': f'Questions sauvegardées! Total: {total_points} points'
+        })
         
     except Exception as e:
         return JsonResponse({
@@ -553,7 +491,7 @@ def quiz_participants(request, quiz_id):
         success_rate = 0
         success_count = 0
     
-    # Add percentage and status to each attempt
+    # Add percentage, status, and formatted time to each attempt
     for attempt in attempts:
         if attempt.total_points > 0:
             attempt.percentage = (attempt.score / attempt.total_points) * 100
@@ -561,6 +499,21 @@ def quiz_participants(request, quiz_id):
         else:
             attempt.percentage = 0
             attempt.is_passing = False
+        
+        if attempt.time_taken:
+            total_seconds = int(attempt.time_taken.total_seconds())
+            if total_seconds >= 3600:  # 1 hour or more
+                hours = total_seconds // 3600
+                minutes = (total_seconds % 3600) // 60
+                attempt.time_taken_display = f"{hours}h {minutes}min"
+            elif total_seconds >= 60:  # 1 minute or more
+                minutes = total_seconds // 60
+                seconds = total_seconds % 60
+                attempt.time_taken_display = f"{minutes}min {seconds}s"
+            else:  # Less than 1 minute
+                attempt.time_taken_display = f"{total_seconds}s"
+        else:
+            attempt.time_taken_display = "Non disponible"
     
     context = {
         'quiz': quiz,
@@ -571,3 +524,32 @@ def quiz_participants(request, quiz_id):
         'success_count': success_count,
     }
     return render(request, 'teacher/quiz_participants.html', context)
+
+@login_required
+def edit_quiz(request, quiz_id):
+    """Éditer un quiz existant et ses questions"""
+    if request.user.user_type != 'teacher':
+        messages.error(request, "Accès réservé aux enseignants.")
+        return redirect('home')
+    
+    quiz = get_object_or_404(Quiz, id=quiz_id, course__teacher=request.user)
+    
+    if request.method == 'POST':
+        form = QuizForm(request.POST, instance=quiz)
+        if form.is_valid():
+            quiz = form.save()
+            messages.success(request, "Quiz mis à jour avec succès!")
+            return redirect('edit_quiz', quiz_id=quiz.id)
+    else:
+        form = QuizForm(instance=quiz)
+    
+    # Récupérer les questions existantes
+    questions = quiz.questions.prefetch_related('choices').order_by('order')
+    
+    context = {
+        'form': form,
+        'quiz': quiz,
+        'questions': questions,
+        'course': quiz.course,
+    }
+    return render(request, 'teacher/edit_quiz.html', context)
