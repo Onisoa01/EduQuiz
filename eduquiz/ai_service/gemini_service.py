@@ -34,11 +34,13 @@ class GeminiService:
         {pdf_content[:8000]}  # Limiter à 8000 caractères pour éviter les limites de tokens
         
         INSTRUCTIONS:
-        1. Crée des questions de différents types : QCM (4 choix), Vrai/Faux, et quelques questions ouvertes
-        2. Varie les niveaux de difficulté : facile, moyen, difficile
-        3. Assure-toi que les questions couvrent les concepts clés du cours
-        4. Pour les QCM, une seule réponse doit être correcte
-        5. Ajoute des explications détaillées pour chaque réponse
+        1. Crée des questions de SEULEMENT 2 types : QCM (4 choix) et questions ouvertes
+        2. PAS de questions Vrai/Faux - elles sont interdites
+        3. Varie les niveaux de difficulté : facile, moyen, difficile
+        4. Assure-toi que les questions couvrent les concepts clés du cours
+        5. Pour les QCM, une seule réponse doit être correcte
+        6. Ajoute des explications détaillées pour chaque réponse
+        7. Les points sont calculés automatiquement selon la difficulté
         
         RÉPONSE ATTENDUE (format JSON strict):
         {{
@@ -48,7 +50,7 @@ class GeminiService:
             "questions": [
                 {{
                     "question_text": "Texte de la question",
-                    "question_type": "mcq|true_false|open",
+                    "question_type": "mcq|open",
                     "difficulty": "easy|medium|hard",
                     "points": 5,
                     "choices": [
@@ -101,6 +103,86 @@ class GeminiService:
                 'error': str(e)
             }
     
+    def evaluate_true_false_answer(self, question_text: str, user_answer: bool, context: str = "") -> Dict[str, Any]:
+        """Évaluer une réponse vrai/faux avec l'IA Gemini"""
+        
+        prompt = f"""
+        Tu es un expert pédagogique. Évalue si cette réponse à une question vrai/faux est correcte.
+        
+        QUESTION: {question_text}
+        RÉPONSE DE L'ÉLÈVE: {"Vrai" if user_answer else "Faux"}
+        CONTEXTE SUPPLÉMENTAIRE: {context}
+        
+        Analyse la question et détermine si la réponse de l'élève est correcte.
+        
+        Réponds UNIQUEMENT avec ce format JSON:
+        {{
+            "is_correct": true/false,
+            "explanation": "Explication détaillée de pourquoi la réponse est correcte ou incorrecte"
+        }}
+        """
+        
+        try:
+            response = self.model.generate_content(prompt)
+            response_text = response.text.strip()
+            
+            if response_text.startswith('```json'):
+                response_text = response_text[7:-3]
+            
+            result = json.loads(response_text)
+            
+            return {
+                'success': True,
+                'is_correct': result.get('is_correct', False),
+                'explanation': result.get('explanation', '')
+            }
+            
+        except Exception as e:
+            print(f"Erreur évaluation IA: {e}")
+            return {
+                'success': False,
+                'error': str(e)
+            }
+    
+    def suggest_quiz_points(self, difficulty: str, time_limit: int, subject: str) -> int:
+        """Suggérer le nombre de points pour un quiz basé sur la difficulté et le temps"""
+        
+        prompt = f"""
+        Tu es un expert en évaluation pédagogique.
+        
+        Suggère le nombre total de points approprié pour un quiz avec ces caractéristiques:
+        - Matière: {subject}
+        - Difficulté: {difficulty}
+        - Temps limite: {time_limit} minutes
+        
+        Considère que:
+        - Un quiz facile devrait donner moins de points
+        - Un quiz difficile devrait donner plus de points
+        - Plus de temps permet des questions plus complexes
+        - Les points doivent motiver les élèves
+        
+        Réponds UNIQUEMENT avec un nombre entier entre 20 et 200.
+        """
+        
+        try:
+            response = self.model.generate_content(prompt)
+            points = int(response.text.strip())
+            
+            # Validation des limites
+            if points < 20:
+                points = 20
+            elif points > 200:
+                points = 200
+                
+            return points
+            
+        except Exception as e:
+            print(f"Erreur suggestion points: {e}")
+            # Fallback calculation
+            difficulty_multiplier = {'easy': 1, 'medium': 1.5, 'hard': 2}
+            base_points = max(20, time_limit)
+            return int(base_points * difficulty_multiplier.get(difficulty, 1))
+
     def improve_question(self, question_text: str, subject: str, level: str) -> Dict[str, Any]:
         """Améliorer une question existante"""
         
