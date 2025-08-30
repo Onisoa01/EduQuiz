@@ -1,13 +1,20 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import login
+from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.views import LoginView
+from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib import messages
 from django.urls import reverse_lazy
 from django.db import transaction
+from django.views.decorators.cache import never_cache
+from django.utils.decorators import method_decorator
+from django.http import HttpResponseRedirect, JsonResponse
+from django.views import View
+import time
+import random
 from .forms import CustomUserCreationForm, StudentProfileForm, TeacherProfileForm
 from .models import User, StudentProfile, TeacherProfile
 
+@method_decorator(never_cache, name='dispatch')
 class CustomLoginView(LoginView):
     template_name = 'auth/login.html'
     
@@ -22,13 +29,19 @@ class CustomLoginView(LoginView):
     
     def form_valid(self, form):
         messages.success(self.request, f'Bienvenue {form.get_user().first_name}!')
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response['Pragma'] = 'no-cache'
+        response['Expires'] = '0'
+        return response
 
+@never_cache
 def register_view(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             try:
+                user = None
                 with transaction.atomic():
                     user = form.save()
                     
@@ -42,8 +55,9 @@ def register_view(request):
                     else:
                         TeacherProfile.objects.create(user=user)
                         print("Teacher profile created")
-                    
-                    login(request, user)
+                
+                if user:
+                    login(request, user, backend='accounts.backends.EmailOrUsernameBackend')
                     messages.success(request, 'Compte créé avec succès!')
                     
                     # Rediriger selon le type d'utilisateur
@@ -64,9 +78,14 @@ def register_view(request):
     else:
         form = CustomUserCreationForm()
     
-    return render(request, 'auth/register.html', {'form': form})
+    response = render(request, 'auth/register.html', {'form': form})
+    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = '0'
+    return response
 
 @login_required
+@never_cache
 def profile_view(request):
     user = request.user
     
@@ -95,3 +114,78 @@ def profile_view(request):
         'form': form,
         'profile': profile
     })
+
+@method_decorator(never_cache, name='dispatch')
+class CustomLogoutView(View):
+    """
+    Custom logout view that properly clears sessions and prevents caching issues
+    """
+    
+    def get(self, request, *args, **kwargs):
+        return self.logout_user(request)
+    
+    def post(self, request, *args, **kwargs):
+        return self.logout_user(request)
+    
+    def logout_user(self, request):
+        storage = messages.get_messages(request)
+        for message in storage:
+            pass  # This consumes all messages
+        storage.used = True
+        
+        if hasattr(request, 'session'):
+            # Clear all session keys individually
+            session_keys = list(request.session.keys())
+            for key in session_keys:
+                del request.session[key]
+            
+            # Force session flush and regenerate session key
+            request.session.flush()
+            request.session.cycle_key()
+        
+        if hasattr(request, 'user'):
+            request.user = None
+        
+        # Logout the user
+        logout(request)
+        
+        timestamp = int(time.time())
+        random_id = random.randint(1000, 9999)
+        redirect_url = f"/?_logout={timestamp}&_clear={random_id}&_nocache=1"
+        
+        # Create response with strict cache control headers
+        response = HttpResponseRedirect(redirect_url)
+        response['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0, private'
+        response['Pragma'] = 'no-cache'
+        response['Expires'] = 'Thu, 01 Jan 1970 00:00:00 GMT'
+        response['Last-Modified'] = 'Thu, 01 Jan 1970 00:00:00 GMT'
+        response['If-Modified-Since'] = 'Thu, 01 Jan 1970 00:00:00 GMT'
+        response['Vary'] = 'Cookie'
+        
+        response.delete_cookie('sessionid', path='/', domain=None)
+        response.delete_cookie('csrftoken', path='/', domain=None)
+        
+        # Clear any custom cookies that might store user state
+        response.delete_cookie('user_type', path='/', domain=None)
+        response.delete_cookie('user_id', path='/', domain=None)
+        
+        return response
+
+@never_cache
+def validate_session(request):
+    """
+    API endpoint to validate if user session is still active
+    Used by JavaScript to check authentication state periodically
+    """
+    if request.user.is_authenticated and request.user.is_active:
+        return JsonResponse({
+            'authenticated': True,
+            'user_type': request.user.user_type,
+            'username': request.user.username
+        })
+    else:
+        response = JsonResponse({'authenticated': False}, status=401)
+        response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response['Pragma'] = 'no-cache'
+        response['Expires'] = '0'
+        return response
