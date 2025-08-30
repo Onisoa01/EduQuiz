@@ -6,12 +6,24 @@ from .models import User, StudentProfile, TeacherProfile
 class CustomUserCreationForm(UserCreationForm):
     first_name = forms.CharField(max_length=30, required=True, label="Prénom")
     last_name = forms.CharField(max_length=30, required=True, label="Nom")
-    email = forms.EmailField(required=True, label="Email")
+    email = forms.EmailField(required=False, label="Email (optionnel pour les élèves)")
     user_type = forms.ChoiceField(choices=User.USER_TYPE_CHOICES, required=True, label="Je suis")
+    username = forms.CharField(
+        max_length=150, 
+        required=False, 
+        label="Nom d'utilisateur (requis si pas d'email)",
+        help_text="Utilisé pour se connecter. Requis si vous n'avez pas d'email."
+    )
+    class_name = forms.ChoiceField(
+        choices=[('', 'Sélectionner une classe')] + User.CLASS_CHOICES,
+        required=False,
+        label="Classe (pour les élèves)",
+        help_text="Sélectionnez votre classe si vous êtes élève"
+    )
     
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'email', 'user_type', 'password1', 'password2')
+        fields = ('first_name', 'last_name', 'username', 'email', 'user_type', 'class_name', 'password1', 'password2')
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -19,36 +31,63 @@ class CustomUserCreationForm(UserCreationForm):
         for field_name, field in self.fields.items():
             field.widget.attrs['class'] = 'mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-primary focus:border-primary'
     
-    def clean_email(self):
-        email = self.cleaned_data.get('email')
-        if User.objects.filter(email=email).exists():
+    def clean(self):
+        cleaned_data = super().clean()
+        user_type = cleaned_data.get('user_type')
+        email = cleaned_data.get('email')
+        username = cleaned_data.get('username')
+        class_name = cleaned_data.get('class_name')
+        
+        if user_type == 'teacher' and not email:
+            raise ValidationError("L'email est obligatoire pour les enseignants.")
+        
+        if user_type == 'student':
+            if not email and not username:
+                raise ValidationError("Vous devez fournir soit un email, soit un nom d'utilisateur.")
+            if not class_name:
+                raise ValidationError("La classe est obligatoire pour les élèves.")
+        
+        if email and User.objects.filter(email=email).exists():
             raise ValidationError("Un compte avec cet email existe déjà.")
-        return email
-    
-    def clean_username(self):
-        # Cette méthode ne sera pas appelée car nous ne demandons pas le username
-        # mais nous la gardons pour éviter les erreurs
-        return self.cleaned_data.get('username', '')
+        
+        if username and User.objects.filter(username=username).exists():
+            raise ValidationError("Ce nom d'utilisateur existe déjà.")
+        
+        return cleaned_data
     
     def save(self, commit=True):
         user = super().save(commit=False)
-        email = self.cleaned_data['email']
+        email = self.cleaned_data.get('email', '')
+        username = self.cleaned_data.get('username', '')
+        class_name = self.cleaned_data.get('class_name', '')
         
-        # Générer un username unique basé sur l'email
-        base_username = email.split('@')[0]
-        username = base_username
-        counter = 1
-        
-        # S'assurer que le username est unique
-        while User.objects.filter(username=username).exists():
-            username = f"{base_username}{counter}"
-            counter += 1
+        if not username:
+            if email:
+                base_username = email.split('@')[0]
+                username = base_username
+                counter = 1
+                
+                while User.objects.filter(username=username).exists():
+                    username = f"{base_username}{counter}"
+                    counter += 1
+            else:
+                first_name = self.cleaned_data['first_name'].lower()
+                last_name = self.cleaned_data['last_name'].lower()
+                base_username = f"{first_name}.{last_name}"
+                username = base_username
+                counter = 1
+                
+                while User.objects.filter(username=username).exists():
+                    username = f"{base_username}{counter}"
+                    counter += 1
         
         user.username = username
         user.email = email
         user.first_name = self.cleaned_data['first_name']
         user.last_name = self.cleaned_data['last_name']
         user.user_type = self.cleaned_data['user_type']
+        if self.cleaned_data['user_type'] == 'student':
+            user.class_name = class_name
         
         if commit:
             user.save()
