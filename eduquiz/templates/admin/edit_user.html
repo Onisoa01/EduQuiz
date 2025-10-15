@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}Modifier l'utilisateur - Admin{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-8">
+    <div class="max-w-2xl mx-auto px-4">
+         Header 
+        <div class="mb-8">
+            <a href="{% url 'admin_users_list' %}" class="text-navy-700 hover:text-navy-900 font-medium mb-4 inline-flex items-center">
+                ← Retour à la liste
+            </a>
+            <h1 class="text-3xl font-bold text-navy-900 mt-4">Modifier l'utilisateur</h1>
+        </div>
+
+         Form 
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
+            <form method="post">
+                {% csrf_token %}
+                
+                 User Type (read-only) 
+                <div class="mb-6 p-4 bg-slate-50 rounded-lg">
+                    <p class="text-sm font-medium text-slate-600">Type d'utilisateur</p>
+                    <p class="text-lg font-semibold text-navy-900 mt-1">{{ user_to_edit.get_user_type_display }}</p>
+                </div>
+
+                 Personal Info 
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-navy-900 mb-2">Prénom *</label>
+                        <input type="text" name="first_name" value="{{ user_to_edit.first_name }}" required class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-navy-900 mb-2">Nom *</label>
+                        <input type="text" name="last_name" value="{{ user_to_edit.last_name }}" required class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent">
+                    </div>
+                </div>
+
+                 Username 
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-navy-900 mb-2">Nom d'utilisateur *</label>
+                    <input type="text" name="username" value="{{ user_to_edit.username }}" required class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent">
+                </div>
+
+                 Email 
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-navy-900 mb-2">Email (optionnel)</label>
+                    <input type="email" name="email" value="{{ user_to_edit.email|default:'' }}" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent">
+                </div>
+
+                 Class (for students only) 
+                {% if user_to_edit.user_type == 'student' %}
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-navy-900 mb-2">Classe *</label>
+                    <select name="class_name" required class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent">
+                        <option value="">Sélectionner une classe</option>
+                        <option value="6eme" {% if user_to_edit.class_name == '6eme' %}selected{% endif %}>6ème</option>
+                        <option value="5eme" {% if user_to_edit.class_name == '5eme' %}selected{% endif %}>5ème</option>
+                        <option value="4eme" {% if user_to_edit.class_name == '4eme' %}selected{% endif %}>4ème</option>
+                        <option value="3eme" {% if user_to_edit.class_name == '3eme' %}selected{% endif %}>3ème</option>
+                        <option value="2nde" {% if user_to_edit.class_name == '2nde' %}selected{% endif %}>2nde</option>
+                        <option value="1ere" {% if user_to_edit.class_name == '1ere' %}selected{% endif %}>1ère</option>
+                        <option value="terminale" {% if user_to_edit.class_name == 'terminale' %}selected{% endif %}>Terminale</option>
+                    </select>
+                </div>
+                {% endif %}
+
+                 Password (optional) 
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-navy-900 mb-2">Nouveau mot de passe (laisser vide pour ne pas changer)</label>
+                    <input type="password" name="password" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent">
+                </div>
+
+                 Submit Button 
+                <div class="flex gap-4">
+                    <button type="submit" class="flex-1 bg-navy-700 text-white py-3 rounded-lg font-medium hover:bg-navy-800 transition-colors">
+                        Enregistrer les modifications
+                    </button>
+                    <a href="{% url 'admin_users_list' %}" class="flex-1 bg-slate-200 text-navy-900 py-3 rounded-lg font-medium hover:bg-slate-300 transition-colors text-center">
+                        Annuler
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
