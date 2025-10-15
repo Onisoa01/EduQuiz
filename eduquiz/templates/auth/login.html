@@ -1,32 +1,33 @@
 {% extends 'base.html' %}
 
-{% block title %}Connexion - EduQuiz{% endblock %}
+{% block title %}Connexion - Institution Saint Famille{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-purple-100 py-12 px-4 sm:px-6 lg:px-8">
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full space-y-8">
         <div class="bg-white rounded-2xl shadow-xl p-8">
             <div class="text-center">
-                <div class="mx-auto h-12 w-12 bg-primary rounded-full flex items-center justify-center">
-                    <i class="fas fa-graduation-cap text-white text-xl"></i>
+                <div class="mx-auto h-12 w-12 bg-navy-700 rounded-full flex items-center justify-center">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                    </svg>
                 </div>
-                <h2 class="mt-6 text-3xl font-bold text-gray-900">Connexion</h2>
-                <p class="mt-2 text-sm text-gray-600">
-                    Accède à ton espace d'apprentissage personnalisé
+                <h2 class="mt-6 text-3xl font-bold text-navy-900">Connexion</h2>
+                <p class="mt-2 text-sm text-slate-600">
+                    Lycée Saint Famille - Plateforme d'apprentissage
                 </p>
             </div>
             
-            <!-- Messages d'erreur -->
             {% if messages %}
                 {% for message in messages %}
-                    <div class="mt-4 p-4 rounded-lg {% if message.tags == 'error' %}bg-red-50 text-red-800{% else %}bg-green-50 text-green-800{% endif %}">
+                    <div class="mt-4 p-4 rounded-lg {% if message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200{% else %}bg-green-50 text-green-800 border border-green-200{% endif %}">
                         {{ message }}
                     </div>
                 {% endfor %}
             {% endif %}
             
             {% if form.errors %}
-                <div class="mt-4 p-4 bg-red-50 rounded-lg">
+                <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
                     <div class="text-red-800">
                         {% for field, errors in form.errors.items %}
                             {% for error in errors %}
@@ -41,32 +42,31 @@
                 {% csrf_token %}
                 <div class="space-y-4">
                     <div>
-                        <!-- Updated label and input to accept username or email -->
-                        <label for="username" class="block text-sm font-medium text-gray-700">Nom d'utilisateur ou Email</label>
+                        <label for="username" class="block text-sm font-medium text-navy-900">Nom d'utilisateur ou Email</label>
                         <input id="username" name="username" type="text" required 
-                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
+                               class="mt-1 block w-full px-4 py-2 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-navy-500 focus:border-transparent"
                                placeholder="nom.utilisateur ou votre@email.com">
-                        <p class="mt-1 text-xs text-gray-500">Vous pouvez utiliser votre nom d'utilisateur ou votre email</p>
+                        <p class="mt-1 text-xs text-slate-500">Vous pouvez utiliser votre nom d'utilisateur ou votre email</p>
                     </div>
                     
                     <div>
-                        <label for="password" class="block text-sm font-medium text-gray-700">Mot de passe</label>
+                        <label for="password" class="block text-sm font-medium text-navy-900">Mot de passe</label>
                         <input id="password" name="password" type="password" required 
-                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-primary focus:border-primary">
+                               class="mt-1 block w-full px-4 py-2 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-navy-500 focus:border-transparent">
                     </div>
                 </div>
 
                 <div class="flex items-center justify-between">
                     <div class="flex items-center">
                         <input id="remember-me" name="remember-me" type="checkbox" 
-                               class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded">
-                        <label for="remember-me" class="ml-2 block text-sm text-gray-900">
+                               class="h-4 w-4 text-navy-700 focus:ring-navy-500 border-slate-300 rounded">
+                        <label for="remember-me" class="ml-2 block text-sm text-navy-900">
                             Se souvenir de moi
                         </label>
                     </div>
 
                     <div class="text-sm">
-                        <a href="#" class="font-medium text-primary hover:text-primary/80">
+                        <a href="#" class="font-medium text-navy-700 hover:text-navy-900">
                             Mot de passe oublié ?
                         </a>
                     </div>
@@ -74,39 +74,21 @@
 
                 <div>
                     <button type="submit" 
-                            class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors">
-                        <i class="fas fa-sign-in-alt mr-2"></i>
+                            class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-navy-700 hover:bg-navy-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-navy-500 transition-colors">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                        </svg>
                         Se connecter
                     </button>
                 </div>
 
                 <div class="text-center">
-                    <p class="text-sm text-gray-600">
-                        Pas encore de compte ?
-                        <a href="{% url 'register' %}" class="font-medium text-primary hover:text-primary/80">
-                            Créer un compte
-                        </a>
+                    <p class="text-sm text-slate-600">
+                        Besoin d'un compte ? Contactez l'administrateur.
                     </p>
                 </div>
             </form>
         </div>
     </div>
 </div>
-
-<script>
-tailwind.config = {
-    theme: {
-        extend: {
-            colors: {
-                primary: '#6366f1',
-                secondary: '#f59e0b',
-                success: '#10b981',
-                danger: '#ef4444',
-                warning: '#f59e0b',
-                info: '#3b82f6',
-            }
-        }
-    }
-}
-</script>
 {% endblock %}
