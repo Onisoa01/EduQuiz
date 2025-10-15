@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}Tableau de bord Admin - Lycée Saint Famille{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-navy-900">Tableau de bord Administrateur</h1>
+            <p class="text-slate-600 mt-2">Gestion des utilisateurs - Lycée Saint Famille</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200 hover:shadow-md transition-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-slate-600">Total Élèves</p>
+                        <p class="text-3xl font-bold text-navy-900 mt-2">{{ total_students }}</p>
+                        <p class="text-sm text-slate-500 mt-1">Comptes actifs</p>
+                    </div>
+                    <div class="w-14 h-14 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-user-graduate text-2xl text-blue-700"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200 hover:shadow-md transition-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-slate-600">Total Enseignants</p>
+                        <p class="text-3xl font-bold text-navy-900 mt-2">{{ total_teachers }}</p>
+                        <p class="text-sm text-slate-500 mt-1">Comptes actifs</p>
+                    </div>
+                    <div class="w-14 h-14 bg-gradient-to-br from-green-100 to-green-200 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-chalkboard-teacher text-2xl text-green-700"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-br from-navy-700 to-navy-900 rounded-xl shadow-sm p-6 text-white hover:shadow-md transition-shadow">
+                <p class="text-sm font-medium text-navy-100 mb-4">Actions rapides</p>
+                <div class="space-y-2">
+                    <a href="{% url 'admin_create_user' %}" class="block w-full bg-white text-navy-900 text-center py-2.5 rounded-lg font-medium hover:bg-navy-50 transition-colors">
+                        <i class="fas fa-plus mr-2"></i>Nouvel utilisateur
+                    </a>
+                    <a href="{% url 'admin_users_list' %}" class="block w-full bg-navy-600 text-white text-center py-2.5 rounded-lg font-medium hover:bg-navy-500 transition-colors">
+                        <i class="fas fa-list mr-2"></i>Voir tous
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200">
+                <div class="p-6 border-b border-slate-200">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-user-graduate text-blue-700"></i>
+                            </div>
+                            <h2 class="text-lg font-semibold text-navy-900">Élèves récents</h2>
+                        </div>
+                        <a href="{% url 'admin_users_list' %}?type=student" class="text-sm text-navy-700 hover:text-navy-900 font-medium">
+                            Voir tout <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="p-6">
+                    {% if recent_students %}
+                        <div class="space-y-3">
+                            {% for student in recent_students %}
+                            <div class="flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+                                <div class="flex items-center gap-3">
+                                    <img class="h-10 w-10 rounded-full" src="https://ui-avatars.com/api/?name={{ student.first_name }}+{{ student.last_name }}&background=1e3a8a&color=fff" alt="Avatar">
+                                    <div>
+                                        <p class="font-medium text-navy-900">{{ student.get_full_name }}</p>
+                                        <p class="text-sm text-slate-600">{{ student.class_name|default:"Classe non définie" }} • @{{ student.username }}</p>
+                                    </div>
+                                </div>
+                                <a href="{% url 'admin_edit_user' student.id %}" class="text-navy-700 hover:text-navy-900 p-2">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-12">
+                            <i class="fas fa-user-graduate text-4xl text-slate-300 mb-3"></i>
+                            <p class="text-slate-500">Aucun élève enregistré</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200">
+                <div class="p-6 border-b border-slate-200">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-chalkboard-teacher text-green-700"></i>
+                            </div>
+                            <h2 class="text-lg font-semibold text-navy-900">Enseignants récents</h2>
+                        </div>
+                        <a href="{% url 'admin_users_list' %}?type=teacher" class="text-sm text-navy-700 hover:text-navy-900 font-medium">
+                            Voir tout <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="p-6">
+                    {% if recent_teachers %}
+                        <div class="space-y-3">
+                            {% for teacher in recent_teachers %}
+                            <div class="flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+                                <div class="flex items-center gap-3">
+                                    <img class="h-10 w-10 rounded-full" src="https://ui-avatars.com/api/?name={{ teacher.first_name }}+{{ teacher.last_name }}&background=059669&color=fff" alt="Avatar">
+                                    <div>
+                                        <p class="font-medium text-navy-900">{{ teacher.get_full_name }}</p>
+                                        <p class="text-sm text-slate-600">@{{ teacher.username }}</p>
+                                    </div>
+                                </div>
+                                <a href="{% url 'admin_edit_user' teacher.id %}" class="text-navy-700 hover:text-navy-900 p-2">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-12">
+                            <i class="fas fa-chalkboard-teacher text-4xl text-slate-300 mb-3"></i>
+                            <p class="text-slate-500">Aucun enseignant enregistré</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
