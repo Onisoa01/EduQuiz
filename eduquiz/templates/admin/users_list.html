@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block title %}Liste des utilisateurs - Admin{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-8">
+    <div class="max-w-7xl mx-auto px-4">
+         Header 
+        <div class="mb-8">
+            <a href="{% url 'admin_dashboard' %}" class="text-navy-700 hover:text-navy-900 font-medium mb-4 inline-flex items-center">
+                ← Retour au tableau de bord
+            </a>
+            <div class="flex items-center justify-between mt-4">
+                <h1 class="text-3xl font-bold text-navy-900">Gestion des utilisateurs</h1>
+                <a href="{% url 'admin_create_user' %}" class="bg-navy-700 text-white px-6 py-3 rounded-lg font-medium hover:bg-navy-800 transition-colors">
+                    + Nouvel utilisateur
+                </a>
+            </div>
+        </div>
+
+         Filters 
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6">
+            <div class="flex gap-4">
+                <a href="{% url 'admin_users_list' %}" class="px-4 py-2 rounded-lg font-medium {% if user_type == 'all' %}bg-navy-700 text-white{% else %}bg-slate-100 text-navy-900 hover:bg-slate-200{% endif %}">
+                    Tous
+                </a>
+                <a href="{% url 'admin_users_list' %}?type=student" class="px-4 py-2 rounded-lg font-medium {% if user_type == 'student' %}bg-navy-700 text-white{% else %}bg-slate-100 text-navy-900 hover:bg-slate-200{% endif %}">
+                    Élèves
+                </a>
+                <a href="{% url 'admin_users_list' %}?type=teacher" class="px-4 py-2 rounded-lg font-medium {% if user_type == 'teacher' %}bg-navy-700 text-white{% else %}bg-slate-100 text-navy-900 hover:bg-slate-200{% endif %}">
+                    Enseignants
+                </a>
+            </div>
+        </div>
+
+         Users Table 
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <table class="w-full">
+                <thead class="bg-slate-50 border-b border-slate-200">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-navy-900">Nom complet</th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-navy-900">Nom d'utilisateur</th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-navy-900">Type</th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-navy-900">Classe</th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-navy-900">Date d'inscription</th>
+                        <th class="px-6 py-4 text-right text-sm font-semibold text-navy-900">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200">
+                    {% for user in users %}
+                    <tr class="hover:bg-slate-50">
+                        <td class="px-6 py-4">
+                            <p class="font-medium text-navy-900">{{ user.get_full_name }}</p>
+                            {% if user.email %}
+                            <p class="text-sm text-slate-600">{{ user.email }}</p>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-slate-700">@{{ user.username }}</td>
+                        <td class="px-6 py-4">
+                            <span class="px-3 py-1 rounded-full text-sm font-medium {% if user.user_type == 'student' %}bg-blue-100 text-blue-800{% else %}bg-green-100 text-green-800{% endif %}">
+                                {{ user.get_user_type_display }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-slate-700">{{ user.class_name|default:"-" }}</td>
+                        <td class="px-6 py-4 text-slate-700">{{ user.date_joined|date:"d/m/Y" }}</td>
+                        <td class="px-6 py-4 text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                <a href="{% url 'admin_edit_user' user.id %}" class="text-navy-700 hover:text-navy-900 p-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                    </svg>
+                                </a>
+                                <button onclick="deleteUser({{ user.id }}, '{{ user.get_full_name }}')" class="text-red-600 hover:text-red-800 p-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-12 text-center text-slate-500">
+                            Aucun utilisateur trouvé
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+function deleteUser(userId, userName) {
+    if (confirm(`Êtes-vous sûr de vouloir supprimer l'utilisateur "${userName}" ?`)) {
+        fetch(`/accounts/admin/users/${userId}/delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Erreur: ' + data.error);
+            }
+        });
+    }
+}
+</script>
+{% endblock %}
