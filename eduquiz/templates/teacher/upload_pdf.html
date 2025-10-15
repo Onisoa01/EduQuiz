@@ -229,14 +229,14 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Validate file type
         if (file.type !== 'application/pdf') {
-            alert('Veuillez sélectionner un fichier PDF.');
+            window.showNotification('Veuillez sélectionner un fichier PDF.', 'warning');
             return;
         }
 
         // Validate file size (10MB max)
         const maxSize = 10 * 1024 * 1024; // 10MB
         if (file.size > maxSize) {
-            alert('Le fichier est trop volumineux. Taille maximale: 10 MB.');
+            window.showNotification('Le fichier est trop volumineux. Taille maximale: 10 MB.', 'error');
             return;
         }
 
@@ -278,7 +278,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Check if file is selected
         if (!fileInput.files.length) {
             e.preventDefault();
-            alert('Veuillez sélectionner un fichier PDF.');
+            window.showNotification('Veuillez sélectionner un fichier PDF.', 'warning');
             return;
         }
 
@@ -288,21 +288,21 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (!title) {
             e.preventDefault();
-            alert('Veuillez saisir un titre pour le cours.');
+            window.showNotification('Veuillez saisir un titre pour le cours.', 'warning');
             document.getElementById('id_title').focus();
             return;
         }
         
         if (!subject) {
             e.preventDefault();
-            alert('Veuillez sélectionner une matière.');
+            window.showNotification('Veuillez sélectionner une matière.', 'warning');
             document.getElementById('id_subject').focus();
             return;
         }
         
         if (!level) {
             e.preventDefault();
-            alert('Veuillez sélectionner un niveau.');
+            window.showNotification('Veuillez sélectionner un niveau.', 'warning');
             document.getElementById('id_level').focus();
             return;
         }
