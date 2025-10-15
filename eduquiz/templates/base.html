@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}EduQuiz - Institution Saint Famille{% endblock %}</title>
+    <title>{% block title %}EduQuiz - Lycée Saint Famille{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -48,14 +48,14 @@
                         <a href="{% url 'home' %}" class="flex items-center space-x-3">
                             {% load static %}
                             <img src="{% static 'images/logo.png' %}" alt="Logo Lycée Saint Famille" class="h-10 w-10 rounded-full object-cover">
-                            <span class="text-xl font-bold text-white">Institution Saint Famille</span>
+                            <span class="text-xl font-bold text-white">Lycée Saint Famille</span>
                         </a>
                     </div>
                 </div>
                 
                 <div class="flex items-center space-x-4">
                     {% if user.is_authenticated %}
-                        {% if user.user_type != 'admin' %}
+                        {% if user.user_type == 'student' %}
                         <div class="flex items-center space-x-2">
                             <i class="fas fa-coins text-yellow-400"></i>
                             <span class="text-sm font-medium text-white">{{ user.points }} pts</span>
@@ -297,31 +297,19 @@
 
         // Global helper functions
         window.showNotification = function(message, type = 'info') {
-            const event = new CustomEvent('show-toast', { detail: { message, type } });
-            window.dispatchEvent(event);
+            const appElement = document.querySelector('[x-data*="appNotifications"]');
+            if (appElement && appElement.__x) {
+                appElement.__x.$data.showToast(message, type);
+            }
         };
 
-        window.showConfirm = function(options) {
-            const event = new CustomEvent('show-confirm', { detail: options });
-            return new Promise((resolve) => {
-                window.addEventListener('confirm-result', function handler(e) {
-                    window.removeEventListener('confirm-result', handler);
-                    resolve(e.detail.result);
-                });
-                window.dispatchEvent(event);
-            });
+        window.showConfirm = async function(options) {
+            const appElement = document.querySelector('[x-data*="appNotifications"]');
+            if (appElement && appElement.__x) {
+                return await appElement.__x.$data.confirm(options);
+            }
+            return false;
         };
-
-        document.addEventListener('alpine:init', () => {
-            window.addEventListener('show-toast', (e) => {
-                Alpine.store('notifications')?.showToast(e.detail.message, e.detail.type);
-            });
-
-            window.addEventListener('show-confirm', async (e) => {
-                const result = await Alpine.store('notifications')?.confirm(e.detail);
-                window.dispatchEvent(new CustomEvent('confirm-result', { detail: { result } }));
-            });
-        });
     </script>
 
     {% block scripts %}{% endblock %}

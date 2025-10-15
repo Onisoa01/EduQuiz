@@ -1,11 +1,10 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Avg, Sum, Q, F
+from django.db.models import Count, Avg, Sum, Q
 from quiz.models import Quiz, QuizAttempt, Course, Subject
 from gamification.models import UserBadge, Achievement
 from django.utils import timezone
 from datetime import timedelta
-from django.core.paginator import Paginator
 
 @login_required
 def dashboard_redirect(request):
@@ -22,7 +21,7 @@ def student_dashboard(request):
         return redirect('teacher_dashboard')
     
     user_attempts = QuizAttempt.objects.filter(user=request.user)
-    successful_attempts = user_attempts.filter(score__gte=F('total_points') * 0.5)
+    successful_attempts = user_attempts.filter(score__gte=50)  # 50% ou plus = réussi
     
     current_level = request.user.current_level
     xp_needed = (current_level + 1) * 200  # Each level needs 200 more XP than previous
@@ -42,14 +41,6 @@ def student_dashboard(request):
     
     recent_attempts = user_attempts.select_related('quiz', 'quiz__subject').order_by('-completed_at')[:5]
     
-    for attempt in recent_attempts:
-        if attempt.total_points > 0:
-            attempt.percentage = (attempt.score / attempt.total_points) * 100
-            attempt.is_passing = attempt.percentage >= 50
-        else:
-            attempt.percentage = 0
-            attempt.is_passing = False
-    
     recent_badges = UserBadge.objects.filter(user=request.user).select_related('badge').order_by('-earned_at')[:3]
     
     available_quizzes = Quiz.objects.filter(
@@ -64,13 +55,10 @@ def student_dashboard(request):
     for subject in subjects:
         subject_attempts = user_attempts.filter(quiz__subject=subject)
         if subject_attempts.exists():
-            total_score = subject_attempts.aggregate(total_score=Sum('score'))['total_score'] or 0
-            total_possible = subject_attempts.aggregate(total_possible=Sum('total_points'))['total_possible'] or 1
-            avg_percentage = (total_score / total_possible) * 100 if total_possible > 0 else 0
-            
+            avg_score = subject_attempts.aggregate(avg_score=Avg('score'))['avg_score']
             subject_performance.append({
                 'subject': subject,
-                'avg_score': round(avg_percentage, 1),
+                'avg_score': round(avg_score, 1) if avg_score else 0,
                 'attempts_count': subject_attempts.count()
             })
     
@@ -122,56 +110,41 @@ def teacher_dashboard(request):
     if request.user.user_type != 'teacher':
         return redirect('student_dashboard')
     
-    # Get all courses and quizzes created by this teacher
     teacher_courses = Course.objects.filter(teacher=request.user)
     teacher_quizzes = Quiz.objects.filter(course__teacher=request.user).select_related('subject', 'course')
-    published_quizzes = teacher_quizzes.filter(is_published=True)
-    draft_quizzes = teacher_quizzes.filter(is_published=False)
     
-    # Get all attempts on teacher's quizzes
-    all_attempts = QuizAttempt.objects.filter(
-        quiz__course__teacher=request.user,
-        is_completed=True
-    ).select_related('user', 'quiz')
-    
-    # Calculate teacher statistics
     teacher_stats = {
         'total_courses': teacher_courses.count(),
         'total_quizzes': teacher_quizzes.count(),
-        'published_quizzes': published_quizzes.count(),
-        'total_attempts': all_attempts.count(),
+        'published_quizzes': teacher_quizzes.filter(is_published=True).count(),
+        'total_attempts': QuizAttempt.objects.filter(quiz__course__teacher=request.user, is_completed=True).count(),
     }
     
-    recent_attempts_list = all_attempts.order_by('-completed_at')
-    paginator = Paginator(recent_attempts_list, 5)  # Show 5 attempts per page
-    page_number = request.GET.get('page')
-    recent_attempts = paginator.get_page(page_number)
+    draft_quizzes = teacher_quizzes.filter(is_published=False).prefetch_related('questions')[:5]
     
-    # Calculate weekly statistics
-    one_week_ago = timezone.now() - timedelta(days=7)
-    weekly_attempts = all_attempts.filter(completed_at__gte=one_week_ago)
+    recent_attempts = QuizAttempt.objects.filter(
+        quiz__course__teacher=request.user,
+        is_completed=True
+    ).select_related('user', 'quiz').order_by('-completed_at')[:10]
     
-    # Get unique students who attempted quizzes this week
-    weekly_students = weekly_attempts.values('user').distinct().count()
-    
-    # Calculate average score for the week
-    weekly_avg_score = 0
-    if weekly_attempts.exists():
-        total_score = weekly_attempts.aggregate(total=Sum('score'))['total'] or 0
-        total_possible = weekly_attempts.aggregate(total=Sum('total_points'))['total'] or 1
-        weekly_avg_score = (total_score / total_possible) * 100 if total_possible > 0 else 0
+    week_ago = timezone.now() - timedelta(days=7)
+    weekly_attempts = QuizAttempt.objects.filter(
+        quiz__course__teacher=request.user,
+        is_completed=True,
+        completed_at__gte=week_ago
+    )
     
     weekly_stats = {
         'completed_attempts': weekly_attempts.count(),
-        'avg_score': round(weekly_avg_score, 1),
-        'new_students': weekly_students,
+        'avg_score': weekly_attempts.aggregate(avg=Avg('score'))['avg'] or 0,
+        'new_students': 0,  # TODO: Implement student tracking
     }
     
     context = {
         'teacher_stats': teacher_stats,
-        'teacher_quizzes': teacher_quizzes.order_by('-created_at'),
-        'draft_quizzes': draft_quizzes.order_by('-created_at')[:5],
-        'recent_attempts': recent_attempts,  # Now paginated
+        'teacher_quizzes': teacher_quizzes[:10],  # Show first 10 quizzes
+        'draft_quizzes': draft_quizzes,
+        'recent_attempts': recent_attempts,
         'weekly_stats': weekly_stats,
     }
     return render(request, 'teacher/dashboard.html', context)

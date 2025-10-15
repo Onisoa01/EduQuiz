@@ -3,7 +3,8 @@
 {% block title %}Éditer le Quiz - EduQuiz{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" x-data="quizEditor()">
+{% csrf_token %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" x-data="quizEditor()" x-init="init()">
     <!-- Header -->
     <div class="mb-8">
         <div class="flex items-center justify-between">
@@ -252,9 +253,107 @@
             </div>
         </div>
     </div>
+
+    <!-- Edit Question Modal -->
+    <div x-show="editModal.show"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-50 overflow-y-auto"
+         style="display: none;">
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" @click="closeEditModal()"></div>
+            
+            <div x-show="editModal.show"
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-6">
+                <div class="mb-4">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">Modifier la question</h3>
+                </div>
+                
+                <div class="space-y-4">
+                    <!-- Question Text -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Question</label>
+                        <textarea x-model="editModal.question.question_text" 
+                                  rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"></textarea>
+                    </div>
+                    
+                    <!-- Difficulty -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Difficulté</label>
+                        <select x-model="editModal.question.difficulty" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                            <option value="easy">Facile</option>
+                            <option value="medium">Moyen</option>
+                            <option value="hard">Difficile</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Points -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Points</label>
+                        <input type="number" x-model="editModal.question.points" min="1" max="20"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                    </div>
+                    
+                    <!-- Choices -->
+                    <div x-show="editModal.question.question_type === 'mcq'">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Choix de réponse</label>
+                        <div class="space-y-2">
+                            <template x-for="(choice, index) in editModal.question.choices" :key="index">
+                                <div class="flex items-center space-x-2">
+                                    <input type="radio" 
+                                           :name="'correct-' + editModal.index"
+                                           :checked="choice.is_correct"
+                                           @change="setCorrectChoice(index)"
+                                           class="h-4 w-4 text-primary focus:ring-primary border-gray-300">
+                                    <input type="text" 
+                                           x-model="choice.text"
+                                           class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                           :placeholder="'Choix ' + String.fromCharCode(65 + index)">
+                                </div>
+                            </template>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">Sélectionnez le bouton radio pour marquer la bonne réponse</p>
+                    </div>
+                    
+                    <!-- Explanation -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Explication (optionnel)</label>
+                        <textarea x-model="editModal.question.explanation" 
+                                  rows="2"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                  placeholder="Expliquez pourquoi cette réponse est correcte..."></textarea>
+                    </div>
+                </div>
+                
+                <div class="mt-6 flex justify-end space-x-3">
+                    <button type="button" 
+                            @click="closeEditModal()"
+                            class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                        Annuler
+                    </button>
+                    <button type="button" 
+                            @click="saveEditedQuestion()"
+                            class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+                        <i class="fas fa-save mr-2"></i>Enregistrer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- Fixed JavaScript syntax errors by properly initializing the questions array and using correct JSON serialization -->
 <script>
 function quizEditor() {
     return {
@@ -263,47 +362,91 @@ function quizEditor() {
         numQuestions: 15,
         isGenerating: false,
         isSaving: false,
+        editModal: {
+            show: false,
+            index: null,
+            question: null
+        },
         
         init() {
+            console.log('[v0] Quiz editor initialized');
+            console.log('[v0] Alpine.js is working');
             this.loadExistingQuestions();
         },
         
         async loadExistingQuestions() {
             try {
-                const response = await fetch(`/quiz/get-questions/{{ quiz.id }}/`);
-                if (response.ok) {
-                    const data = await response.json();
-                    this.questions = data.questions || [];
+                console.log('[v0] Loading existing questions for quiz {{ quiz.id }}...');
+                const url = `/quiz/get-questions/{{ quiz.id }}/`;
+                console.log('[v0] Fetching from:', url);
+                
+                const response = await fetch(url);
+                console.log('[v0] Response status:', response.status);
+                console.log('[v0] Response ok:', response.ok);
+                
+                if (!response.ok) {
+                    console.error('[v0] Failed to load questions, status:', response.status);
+                    const text = await response.text();
+                    console.error('[v0] Response text:', text);
+                    return;
+                }
+                
+                const data = await response.json();
+                console.log('[v0] Response data:', data);
+                
+                if (data.success && data.questions) {
+                    this.questions = data.questions;
+                    console.log('[v0] Successfully loaded', this.questions.length, 'questions');
+                    console.log('[v0] Questions:', this.questions);
+                } else {
+                    console.log('[v0] No questions found or invalid response format');
+                    this.questions = [];
                 }
             } catch (error) {
-                console.log('No existing questions found');
+                console.error('[v0] Error loading questions:', error);
+                console.error('[v0] Error stack:', error.stack);
+                this.questions = [];
             }
         },
         
         async generateSuggestions() {
+            console.log('[v0] generateSuggestions called');
             this.isGenerating = true;
+            
             try {
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+                if (!csrfToken) {
+                    alert('Erreur: Token CSRF introuvable');
+                    return;
+                }
+                
+                console.log('[v0] Generating', this.numQuestions, 'questions');
                 const response = await fetch(`/quiz/generate-suggestions/{{ quiz.id }}/`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                        'X-CSRFToken': csrfToken.value
                     },
                     body: JSON.stringify({
-                        num_questions: this.numQuestions
+                        num_questions: parseInt(this.numQuestions)
                     })
                 });
                 
+                console.log('[v0] Response status:', response.status);
                 const data = await response.json();
+                console.log('[v0] Response data:', data);
                 
                 if (data.success) {
                     this.aiSuggestions = data.suggestions.questions.map(q => ({...q, selected: false}));
-                    window.showNotification('Questions générées avec succès !', 'success');
+                    console.log('[v0] Generated', this.aiSuggestions.length, 'suggestions');
+                    alert('Questions générées avec succès !');
                 } else {
-                    window.showNotification('Erreur: ' + data.error, 'error');
+                    console.error('[v0] Generation failed:', data.error);
+                    alert('Erreur: ' + data.error);
                 }
             } catch (error) {
-                window.showNotification('Erreur lors de la génération: ' + error.message, 'error');
+                console.error('[v0] Error generating suggestions:', error);
+                alert('Erreur lors de la génération: ' + error.message);
             } finally {
                 this.isGenerating = false;
             }
@@ -319,101 +462,179 @@ function quizEditor() {
         
         addSelectedSuggestions() {
             const selected = this.aiSuggestions.filter(s => s.selected);
+            console.log('[v0] Adding', selected.length, 'selected suggestions');
             this.questions.push(...selected);
             this.aiSuggestions = [];
+            alert(`${selected.length} question(s) ajoutée(s)`);
         },
         
         async removeQuestion(index) {
-            const confirmed = await window.showConfirm({
-                title: 'Supprimer la question',
-                message: 'Êtes-vous sûr de vouloir supprimer cette question ?',
-                type: 'danger',
-                confirmText: 'Supprimer',
-                cancelText: 'Annuler'
-            });
+            console.log('[v0] removeQuestion called for index:', index);
+            console.log('[v0] Current questions count:', this.questions.length);
             
-            if (confirmed) {
-                this.questions.splice(index, 1);
-                window.showNotification('Question supprimée', 'success');
+            if (!confirm('Êtes-vous sûr de vouloir supprimer cette question ?')) {
+                console.log('[v0] User cancelled deletion');
+                return;
             }
+            
+            this.questions.splice(index, 1);
+            console.log('[v0] Question removed, remaining:', this.questions.length);
+            
+            await this.saveQuestions();
+            
+            alert('Question supprimée avec succès');
         },
         
         editQuestion(index) {
-            window.showNotification('Fonctionnalité d\'édition à venir', 'info');
+            console.log('[v0] editQuestion called for index:', index);
+            this.editModal.question = JSON.parse(JSON.stringify(this.questions[index]));
+            this.editModal.index = index;
+            this.editModal.show = true;
+        },
+        
+        setCorrectChoice(choiceIndex) {
+            this.editModal.question.choices.forEach((choice, index) => {
+                choice.is_correct = (index === choiceIndex);
+            });
+        },
+        
+        saveEditedQuestion() {
+            console.log('[v0] saveEditedQuestion called');
+            
+            if (!this.editModal.question.question_text.trim()) {
+                alert('Le texte de la question ne peut pas être vide');
+                return;
+            }
+            
+            if (this.editModal.question.question_type === 'mcq') {
+                const hasCorrect = this.editModal.question.choices.some(c => c.is_correct);
+                if (!hasCorrect) {
+                    alert('Vous devez sélectionner une réponse correcte');
+                    return;
+                }
+            }
+            
+            this.questions[this.editModal.index] = this.editModal.question;
+            console.log('[v0] Question updated at index:', this.editModal.index);
+            alert('Question modifiée avec succès');
+            this.closeEditModal();
+        },
+        
+        closeEditModal() {
+            this.editModal.show = false;
+            this.editModal.index = null;
+            this.editModal.question = null;
         },
         
         async saveQuestions() {
+            console.log('[v0] saveQuestions called');
+            console.log('[v0] Questions to save:', this.questions.length);
+            
             if (this.questions.length === 0) {
-                window.showNotification('Aucune question à sauvegarder', 'warning');
+                alert('Aucune question à sauvegarder');
                 return;
             }
             
             this.isSaving = true;
+            
             try {
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+                if (!csrfToken) {
+                    alert('Erreur: Token CSRF introuvable');
+                    return;
+                }
+                
+                console.log('[v0] Saving questions to /quiz/save-questions/{{ quiz.id }}/');
                 const response = await fetch(`/quiz/save-questions/{{ quiz.id }}/`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                        'X-CSRFToken': csrfToken.value
                     },
                     body: JSON.stringify({
                         questions: this.questions
                     })
                 });
                 
+                console.log('[v0] Response status:', response.status);
                 const data = await response.json();
+                console.log('[v0] Response data:', data);
                 
                 if (data.success) {
-                    window.showNotification('Questions sauvegardées avec succès !', 'success');
+                    alert('Questions sauvegardées avec succès !');
+                    await this.loadExistingQuestions();
                 } else {
-                    window.showNotification('Erreur: ' + data.error, 'error');
+                    console.error('[v0] Save failed:', data.error);
+                    alert('Erreur: ' + data.error);
                 }
             } catch (error) {
-                window.showNotification('Erreur lors de la sauvegarde: ' + error.message, 'error');
+                console.error('[v0] Error saving questions:', error);
+                alert('Erreur lors de la sauvegarde: ' + error.message);
             } finally {
                 this.isSaving = false;
             }
         },
         
         async publishQuiz() {
+            console.log('[v0] publishQuiz called');
+            console.log('[v0] Questions count:', this.questions.length);
+            
             if (this.questions.length === 0) {
-                window.showNotification('Vous devez ajouter des questions avant de publier le quiz', 'warning');
+                alert('Vous devez ajouter des questions avant de publier le quiz');
                 return;
             }
             
-            const confirmed = await window.showConfirm({
-                title: 'Publier le quiz',
-                message: 'Êtes-vous sûr de vouloir publier ce quiz ? Il sera visible par tous les élèves.',
-                type: 'info',
-                confirmText: 'Publier',
-                cancelText: 'Annuler'
-            });
+            if (!confirm('Êtes-vous sûr de vouloir publier ce quiz ? Il sera visible par tous les élèves.')) {
+                console.log('[v0] User cancelled publish');
+                return;
+            }
             
-            if (confirmed) {
-                try {
-                    const response = await fetch(`/quiz/publish/{{ quiz.id }}/`, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                        }
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (data.success) {
-                        window.showNotification('Quiz publié avec succès !', 'success');
-                        setTimeout(() => location.reload(), 1500);
-                    } else {
-                        window.showNotification('Erreur: ' + data.error, 'error');
-                    }
-                } catch (error) {
-                    window.showNotification('Erreur lors de la publication: ' + error.message, 'error');
+            try {
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+                console.log('[v0] CSRF token found:', !!csrfToken);
+                
+                if (!csrfToken) {
+                    alert('Erreur: Token CSRF introuvable. Veuillez recharger la page.');
+                    return;
                 }
+                
+                const url = `/quiz/publish/{{ quiz.id }}/`;
+                console.log('[v0] Publishing to:', url);
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken.value,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('[v0] Response status:', response.status);
+                console.log('[v0] Response ok:', response.ok);
+                
+                const data = await response.json();
+                console.log('[v0] Response data:', data);
+                
+                if (data.success) {
+                    alert('Quiz publié avec succès !');
+                    console.log('[v0] Reloading page in 1 second...');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    console.error('[v0] Publish failed:', data.error);
+                    alert('Erreur: ' + (data.error || 'Erreur inconnue'));
+                }
+            } catch (error) {
+                console.error('[v0] Error publishing quiz:', error);
+                console.error('[v0] Error stack:', error.stack);
+                alert('Erreur lors de la publication: ' + error.message);
             }
         }
     }
 }
+
+console.log('[v0] Quiz editor script loaded');
 </script>
 
-{% csrf_token %}
 {% endblock %}

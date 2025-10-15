@@ -25,9 +25,7 @@ class CustomLoginView(LoginView):
         else:
             return reverse_lazy('student_dashboard')
     
-    def form_valid(self, form):
-        messages.success(self.request, f'Bienvenue {form.get_user().first_name}!')
-        return super().form_valid(form)
+   
 
 # def register_view(request): ...
 
@@ -159,26 +157,111 @@ def profile_view(request):
     
     if user.user_type == 'student':
         profile, created = StudentProfile.objects.get_or_create(user=user)
-        if request.method == 'POST':
-            form = StudentProfileForm(request.POST, instance=profile)
-            if form.is_valid():
-                form.save()
-                messages.success(request, 'Profil mis à jour!')
-                return redirect('profile')
-        else:
-            form = StudentProfileForm(instance=profile)
+        
+        from quiz.models import QuizAttempt
+        from gamification.models import UserBadge
+        from django.db.models import Avg
+        
+        user_attempts = QuizAttempt.objects.filter(user=user)
+        successful_attempts = user_attempts.filter(score__gte=50)
+        
+        current_level = user.current_level
+        xp_needed = (current_level + 1) * 200
+        progress_percent = min((user.xp / xp_needed) * 100, 100) if xp_needed > 0 else 0
+        
+        user_stats = {
+            'total_points': user.points,
+            'current_level': current_level,
+            'xp': user.xp,
+            'xp_needed': xp_needed,
+            'progress_percent': round(progress_percent, 1),
+            'streak_days': user.streak_days,
+            'total_attempts': user_attempts.count(),
+            'successful_attempts': successful_attempts.count(),
+            'success_rate': round((successful_attempts.count() / user_attempts.count() * 100), 1) if user_attempts.count() > 0 else 0,
+        }
+        
+        recent_attempts = user_attempts.select_related('quiz', 'quiz__subject').order_by('-completed_at')[:5]
+        
+        # Subject performance
+        from quiz.models import Subject
+        subject_performance = []
+        subjects = Subject.objects.all()
+        for subject in subjects:
+            subject_attempts = user_attempts.filter(quiz__subject=subject)
+            if subject_attempts.exists():
+                avg_score = subject_attempts.aggregate(avg_score=Avg('score'))['avg_score']
+                subject_performance.append({
+                    'subject': subject,
+                    'avg_score': round(avg_score, 1) if avg_score else 0,
+                    'attempts_count': subject_attempts.count()
+                })
+        
+        # Class leaderboard
+        class_leaderboard = []
+        if user.class_name:
+            class_students = User.objects.filter(
+                user_type='student',
+                class_name=user.class_name
+            ).order_by('-points')[:10]
+            
+            for i, student in enumerate(class_students, 1):
+                class_leaderboard.append({
+                    'rank': i,
+                    'user': student,
+                    'points': student.points,
+                    'is_current_user': student == user
+                })
+        
+        return render(request, 'student/profile.html', {
+            'profile': profile,
+            'user_stats': user_stats,
+            'recent_attempts': recent_attempts,
+            'subject_performance': subject_performance,
+            'class_leaderboard': class_leaderboard,
+        })
     else:
         profile, created = TeacherProfile.objects.get_or_create(user=user)
-        if request.method == 'POST':
-            form = TeacherProfileForm(request.POST, instance=profile)
-            if form.is_valid():
-                form.save()
-                messages.success(request, 'Profil mis à jour!')
-                return redirect('profile')
-        else:
-            form = TeacherProfileForm(instance=profile)
-    
-    return render(request, 'student/profile.html', {
-        'form': form,
-        'profile': profile
-    })
+        
+        from quiz.models import Course, Quiz, QuizAttempt
+        from django.db.models import Count
+        
+        teacher_courses = Course.objects.filter(teacher=user)
+        teacher_quizzes = Quiz.objects.filter(course__teacher=user).select_related('subject', 'course')
+        
+        teacher_stats = {
+            'total_courses': teacher_courses.count(),
+            'total_quizzes': teacher_quizzes.count(),
+            'published_quizzes': teacher_quizzes.filter(is_published=True).count(),
+            'total_attempts': QuizAttempt.objects.filter(quiz__course__teacher=user, is_completed=True).count(),
+        }
+        
+        # Quiz by subject
+        quiz_by_subject = []
+        from quiz.models import Subject
+        subjects = Subject.objects.all()
+        total_quizzes = teacher_quizzes.count()
+        
+        for subject in subjects:
+            count = teacher_quizzes.filter(subject=subject).count()
+            if count > 0:
+                quiz_by_subject.append({
+                    'subject': subject.name,
+                    'count': count,
+                    'percentage': round((count / total_quizzes * 100), 1) if total_quizzes > 0 else 0
+                })
+        
+        recent_attempts = QuizAttempt.objects.filter(
+            quiz__course__teacher=user,
+            is_completed=True
+        ).select_related('user', 'quiz').order_by('-completed_at')[:10]
+        
+        recent_courses = teacher_courses.select_related('subject').order_by('-created_at')[:5]
+        
+        return render(request, 'teacher/profile.html', {
+            'profile': profile,
+            'teacher_stats': teacher_stats,
+            'quiz_by_subject': quiz_by_subject,
+            'recent_attempts': recent_attempts,
+            'recent_courses': recent_courses,
+        })

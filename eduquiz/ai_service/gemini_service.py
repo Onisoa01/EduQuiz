@@ -34,7 +34,7 @@ class GeminiService:
         {pdf_content[:8000]}  # Limiter à 8000 caractères pour éviter les limites de tokens
         
         INSTRUCTIONS:
-        1. Crée des questions de SEULEMENT 2 types : QCM (4 choix) et questions ouvertes
+        1. Crée des questions de SEULEMENT types : QCM (4 choix)
         2. PAS de questions Vrai/Faux - elles sont interdites
         3. Varie les niveaux de difficulté : facile, moyen, difficile
         4. Assure-toi que les questions couvrent les concepts clés du cours

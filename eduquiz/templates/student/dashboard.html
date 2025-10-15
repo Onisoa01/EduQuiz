@@ -14,17 +14,12 @@
                 <p class="text-sm text-gray-500">Classe: {{ user.get_class_name_display }}</p>
                 {% endif %}
             </div>
-            <div class="flex items-center space-x-4">
-                <div class="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-4 py-2 rounded-full">
-                    <i class="fas fa-fire mr-2"></i>
-                    <span class="font-semibold">Série: {{ user_stats.streak_days }} jour{{ user_stats.streak_days|pluralize }}</span>
-                </div>
-            </div>
+           
         </div>
     </div>
 
     <!-- Use dynamic stats instead of hardcoded values -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div class="flex items-center">
                 <div class="p-2 bg-blue-100 rounded-lg">
@@ -45,18 +40,6 @@
                 <div class="ml-4">
                     <p class="text-sm font-medium text-gray-600">Quiz réussis</p>
                     <p class="text-2xl font-bold text-gray-900">{{ user_stats.successful_attempts|default:0 }}</p>
-                </div>
-            </div>
-        </div>
-        
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div class="flex items-center">
-                <div class="p-2 bg-purple-100 rounded-lg">
-                    <i class="fas fa-medal text-purple-600 text-xl"></i>
-                </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Badges</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ user_stats.total_badges|default:0 }}</p>
                 </div>
             </div>
         </div>
@@ -113,11 +96,10 @@
                 {% if recent_attempts %}
                 <div class="space-y-4">
                     {% for attempt in recent_attempts %}
-                    <!-- Use backend-calculated percentage for color logic -->
-                    <div class="flex items-center justify-between p-4 {% if attempt.is_passing %}bg-green-50 border-green-200{% else %}bg-red-50 border-red-200{% endif %} rounded-lg border">
+                    <div class="flex items-center justify-between p-4 {% if attempt.score >= 80 %}bg-green-50 border-green-200{% elif attempt.score >= 50 %}bg-blue-50 border-blue-200{% else %}bg-red-50 border-red-200{% endif %} rounded-lg border">
                         <div class="flex items-center">
-                            <div class="w-10 h-10 {% if attempt.is_passing %}bg-green-500{% else %}bg-red-500{% endif %} rounded-full flex items-center justify-center">
-                                {% if attempt.is_passing %}
+                            <div class="w-10 h-10 {% if attempt.score >= 80 %}bg-green-500{% elif attempt.score >= 50 %}bg-blue-500{% else %}bg-red-500{% endif %} rounded-full flex items-center justify-center">
+                                {% if attempt.score >= 50 %}
                                 <i class="fas fa-check text-white"></i>
                                 {% else %}
                                 <i class="fas fa-times text-white"></i>
@@ -128,7 +110,7 @@
                                 <p class="text-sm text-gray-600">{{ attempt.completed_at|timesince }} • +{{ attempt.points_earned|default:0 }} points</p>
                             </div>
                         </div>
-                        <div class="{% if attempt.is_passing %}text-green-600{% else %}text-red-600{% endif %} font-bold">{{ attempt.score|floatformat:0 }}/{{ attempt.total_points|floatformat:0 }}</div>
+                        <div class="{% if attempt.score >= 80 %}text-green-600{% elif attempt.score >= 50 %}text-blue-600{% else %}text-red-600{% endif %} font-bold">{{ attempt.score|floatformat:0 }}/100</div>
                     </div>
                     {% endfor %}
                 </div>
@@ -173,8 +155,7 @@
                             </div>
                             <span class="ml-3 text-sm font-medium">{{ perf.subject.name }}</span>
                         </div>
-                        <!-- Updated color thresholds: green for 50%+, yellow for 30-49%, red for <30% -->
-                        <span class="text-xs {% if perf.avg_score >= 50 %}bg-green-100 text-green-800{% elif perf.avg_score >= 30 %}bg-yellow-100 text-yellow-800{% else %}bg-red-100 text-red-800{% endif %} px-2 py-1 rounded-full">{{ perf.avg_score|floatformat:0 }}%</span>
+                        <span class="text-xs {% if perf.avg_score >= 80 %}bg-green-100 text-green-800{% elif perf.avg_score >= 60 %}bg-yellow-100 text-yellow-800{% else %}bg-red-100 text-red-800{% endif %} px-2 py-1 rounded-full">{{ perf.avg_score|floatformat:0 }}%</span>
                     </div>
                     {% endfor %}
                 </div>

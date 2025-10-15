@@ -64,10 +64,7 @@
                             <div class="text-xs text-gray-600">réussite</div>
                         </div>
                         
-                        <div class="text-center">
-                            <div class="text-lg font-bold text-blue-600">{{ quiz.avg_score|floatformat:0 }}</div>
-                            <div class="text-xs text-gray-600">score moyen</div>
-                        </div>
+                       
                         {% endif %}
                         
                         <div class="flex space-x-2">
@@ -82,12 +79,13 @@
                             <a href="{% url 'edit_quiz' quiz.id %}" class="p-2 text-gray-400 hover:text-primary" title="Modifier">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <!-- Changed statistics button to participants button and removed duplicate participants button -->
+                            <!-- Added link to view quiz participants and their scores -->
                             {% if quiz.is_published and quiz.total_attempts > 0 %}
-                            <a href="{% url 'quiz_participants' quiz.id %}" class="p-2 text-gray-400 hover:text-blue-600" title="Voir les participants">
+                            <a href="{% url 'quiz_participants' quiz.id %}" class="p-2 text-gray-400 hover:text-green-600" title="Voir les participants">
                                 <i class="fas fa-users"></i>
                             </a>
                             {% endif %}
+                          
                             <button class="p-2 text-gray-400 hover:text-red-600" title="Supprimer">
                                 <i class="fas fa-trash"></i>
                             </button>
