@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block title %}Créer un utilisateur - Admin{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-8">
+    <div class="max-w-2xl mx-auto px-4">
+         Header 
+        <div class="mb-8">
+            <a href="{% url 'admin_dashboard' %}" class="text-navy-700 hover:text-navy-900 font-medium mb-4 inline-flex items-center">
+                ← Retour au tableau de bord
+            </a>
+            <h1 class="text-3xl font-bold text-navy-900 mt-4">Créer un nouvel utilisateur</h1>
+        </div>
+
+         Form 
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
+            <form method="post" id="createUserForm">
+                {% csrf_token %}
+                
+                 User Type Selection 
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-navy-900 mb-2">Type d'utilisateur *</label>
+                    <div class="grid grid-cols-2 gap-4">
+                        <label class="relative flex items-center p-4 border-2 border-slate-200 rounded-lg cursor-pointer hover:border-navy-500 transition-colors">
+                            <input type="radio" name="user_type" value="student" class="mr-3" required checked>
+                            <div>
+                                <p class="font-medium text-navy-900">Élève</p>
+                                <p class="text-sm text-slate-600">Compte étudiant</p>
+                            </div>
+                        </label>
+                        <label class="relative flex items-center p-4 border-2 border-slate-200 rounded-lg cursor-pointer hover:border-navy-500 transition-colors">
+                            <input type="radio" name="user_type" value="teacher" class="mr-3" required>
+                            <div>
+                                <p class="font-medium text-navy-900">Enseignant</p>
+                                <p class="text-sm text-slate-600">Compte professeur</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                 Personal Info 
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-navy-900 mb-2">Prénom *</label>
+                        <input type="text" name="first_name" required class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-navy-900 mb-2">Nom *</label>
+                        <input type="text" name="last_name" required class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent">
+                    </div>
+                </div>
+
+                 Username 
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-navy-900 mb-2">Nom d'utilisateur *</label>
+                    <input type="text" name="username" required class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent">
+                    <p class="text-sm text-slate-600 mt-1">L'utilisateur se connectera avec ce nom d'utilisateur</p>
+                </div>
+
+                 Email (optional) 
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-navy-900 mb-2">Email (optionnel)</label>
+                    <input type="email" name="email" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent">
+                </div>
+
+                 Class (for students only) 
+                <div class="mb-4" id="classField" style="display: none;">
+                    <label class="block text-sm font-medium text-navy-900 mb-2">Classe *</label>
+                    <select name="class_name" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent">
+                        <option value="">Sélectionner une classe</option>
+                        <option value="6eme">6ème</option>
+                        <option value="5eme">5ème</option>
+                        <option value="4eme">4ème</option>
+                        <option value="3eme">3ème</option>
+                        <option value="2nde">2nde</option>
+                        <option value="1ere">1ère</option>
+                        <option value="terminale">Terminale</option>
+                    </select>
+                </div>
+
+                 Password 
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-navy-900 mb-2">Mot de passe *</label>
+                    <input type="password" name="password" required class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent">
+                    <p class="text-sm text-slate-600 mt-1">Minimum 8 caractères</p>
+                </div>
+
+                 Submit Button 
+                <div class="flex gap-4">
+                    <button type="submit" class="flex-1 bg-navy-700 text-white py-3 rounded-lg font-medium hover:bg-navy-800 transition-colors">
+                        Créer l'utilisateur
+                    </button>
+                    <a href="{% url 'admin_dashboard' %}" class="flex-1 bg-slate-200 text-navy-900 py-3 rounded-lg font-medium hover:bg-slate-300 transition-colors text-center">
+                        Annuler
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Show/hide class field based on user type
+    const userTypeRadios = document.querySelectorAll('input[name="user_type"]');
+    const classField = document.getElementById('classField');
+    
+    userTypeRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'student') {
+                classField.style.display = 'block';
+                classField.querySelector('select').required = true;
+            } else {
+                classField.style.display = 'none';
+                classField.querySelector('select').required = false;
+            }
+        });
+    });
+    
+    // Initialize on page load
+    document.querySelector('input[name="user_type"]:checked').dispatchEvent(new Event('change'));
+</script>
+{% endblock %}
