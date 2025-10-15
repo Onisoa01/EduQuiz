@@ -5,6 +5,7 @@ class User(AbstractUser):
     USER_TYPE_CHOICES = [
         ('student', 'Élève'),
         ('teacher', 'Enseignant'),
+        ('admin', 'Administrateur'),
     ]
     
     CLASS_CHOICES = [
@@ -33,10 +34,8 @@ class User(AbstractUser):
 
 class StudentProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='student_profile')
-    class_name = models.CharField(max_length=20, choices=User.CLASS_CHOICES, blank=True, null=True)
     favorite_subjects = models.JSONField(default=list, blank=True)
     learning_goals = models.TextField(blank=True)
-
     
     def __str__(self):
         return f"Profil de {self.user.get_full_name()}"
