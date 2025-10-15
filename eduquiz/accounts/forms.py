@@ -96,20 +96,8 @@ class CustomUserCreationForm(UserCreationForm):
 class StudentProfileForm(forms.ModelForm):
     class Meta:
         model = StudentProfile
-        fields = ['class_name', 'learning_goals']
+        fields = ['learning_goals']
         widgets = {
-            'class_name': forms.Select(choices=[
-                ('', 'Sélectionner une classe'),
-                ('6eme', '6ème'),
-                ('5eme', '5ème'),
-                ('4eme', '4ème'),
-                ('3eme', '3ème'),
-                ('seconde', 'Seconde'),
-                ('premiere', 'Première'),
-                ('terminale', 'Terminale'),
-            ], attrs={
-                'class': 'mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary'
-            }),
             'learning_goals': forms.Textarea(attrs={
                 'rows': 3,
                 'class': 'mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary',
@@ -117,7 +105,6 @@ class StudentProfileForm(forms.ModelForm):
             }),
         }
         labels = {
-            'class_name': 'Classe',
             'learning_goals': 'Objectifs d\'apprentissage',
         }
 
