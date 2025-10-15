@@ -1,19 +1,26 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
-<!-- Hero Section -->
-<div class="bg-gradient-to-br from-primary to-purple-700 text-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+<div class="relative text-white overflow-hidden h-[850px] sm:h-[500px]">
+    <!-- Background -->
+    <div class="absolute inset-0 bg-cover bg-center" 
+         style="background-image: url('{% static 'images/fond.jpg' %}');">
+        <div class="absolute inset-0 bg-gradient-to-br from-primary/70 to-navy-700/70"></div>
+    </div>
+    
+    <!-- Content -->
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex flex-col justify-center">
         <div class="text-center">
-            <h1 class="text-5xl font-bold mb-6">
+            <h1 class="text-5xl font-bold mb-6 drop-shadow-lg">
                 Révise en t'amusant !
             </h1>
-            <p class="text-xl mb-8 max-w-3xl mx-auto">
+            <p class="text-xl mb-8 max-w-3xl mx-auto drop-shadow-md">
                 Transforme tes révisions en aventure avec des quiz interactifs, des défis chronométrés et un système de récompenses motivant.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="{% url 'register' %}" class="bg-white text-primary px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
-                    Commencer maintenant
+                <a href="{% url 'login' %}" class="bg-white text-primary px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors shadow-lg">
+                    Se connecter
                 </a>
                 <a href="#features" class="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-primary transition-colors">
                     Découvrir les fonctionnalités
@@ -23,7 +30,7 @@
     </div>
 </div>
 
-<!-- Features Section -->
+
 <div id="features" class="py-20 bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
@@ -59,38 +66,16 @@
     </div>
 </div>
 
-<!-- Stats Section -->
-<div class="py-16 bg-gray-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid md:grid-cols-4 gap-8 text-center">
-            <div>
-                <div class="text-4xl font-bold text-primary mb-2">10K+</div>
-                <div class="text-gray-600">Élèves actifs</div>
-            </div>
-            <div>
-                <div class="text-4xl font-bold text-primary mb-2">500+</div>
-                <div class="text-gray-600">Enseignants</div>
-            </div>
-            <div>
-                <div class="text-4xl font-bold text-primary mb-2">50K+</div>
-                <div class="text-gray-600">Quiz créés</div>
-            </div>
-            <div>
-                <div class="text-4xl font-bold text-primary mb-2">95%</div>
-                <div class="text-gray-600">Taux de satisfaction</div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- CTA Section -->
 <div class="bg-primary text-white py-16">
     <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
         <h2 class="text-3xl font-bold mb-4">Prêt à révolutionner tes révisions ?</h2>
         <p class="text-xl mb-8">Rejoins des milliers d'élèves qui ont déjà transformé leur façon d'apprendre.</p>
-        <a href="{% url 'register' %}" class="bg-white text-primary px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
-            Créer mon compte gratuitement
+        <a href="{% url 'login' %}" class="bg-white text-primary px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors inline-block">
+            Se connecter à mon compte
         </a>
+        <p class="mt-4 text-sm text-gray-200">
+            Pas encore de compte ? Contactez l'administration du lycée
+        </p>
     </div>
 </div>
 {% endblock %}
